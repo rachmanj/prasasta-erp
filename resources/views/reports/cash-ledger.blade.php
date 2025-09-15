@@ -3,39 +3,76 @@
 @section('title', 'Cash Ledger')
 
 @section('content')
+    <div class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1 class="m-0">Cash Ledger</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+                        <li class="breadcrumb-item active">Cash Ledger</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <section class="content">
         <div class="container-fluid">
             <div class="row">
                 <div class="col-12">
                     <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
+                        <div class="card-header">
                             <h3 class="card-title">Cash Ledger</h3>
-                            <form method="get" class="form-inline">
-                                <input type="date" name="from" value="{{ request('from') }}"
-                                    class="form-control form-control-sm mr-2">
-                                <input type="date" name="to" value="{{ request('to') }}"
-                                    class="form-control form-control-sm mr-2">
-                                <button class="btn btn-sm btn-secondary mr-2">Apply</button>
-                                <a class="btn btn-sm btn-outline-success mr-2"
-                                    href="{{ route('reports.cash-ledger', array_merge(request()->query(), ['export' => 'csv'])) }}">CSV</a>
-                                <a class="btn btn-sm btn-outline-primary"
-                                    href="{{ route('reports.cash-ledger', array_merge(request()->query(), ['export' => 'pdf'])) }}"
-                                    target="_blank">PDF</a>
-                            </form>
+                            <div class="card-tools">
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-success btn-sm dropdown-toggle"
+                                        data-toggle="dropdown">
+                                        <i class="fas fa-download"></i> Export
+                                    </button>
+                                    <div class="dropdown-menu">
+                                        <a class="dropdown-item" href="#" onclick="exportToCSV()">
+                                            <i class="fas fa-file-csv"></i> Export CSV
+                                        </a>
+                                        <a class="dropdown-item" href="#" onclick="exportToPDF()">
+                                            <i class="fas fa-file-pdf"></i> Export PDF
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="card-body p-0">
-                            <table class="table table-bordered table-striped table-sm mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Description</th>
-                                        <th class="text-right">Debit</th>
-                                        <th class="text-right">Credit</th>
-                                        <th class="text-right">Balance</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="rows"></tbody>
-                            </table>
+                        <div class="card-body">
+                            <form method="get" class="mb-3 form-inline">
+                                <div class="form-group mr-2">
+                                    <label class="mr-1">From:</label>
+                                    <input type="date" name="from" value="{{ request('from') }}"
+                                        class="form-control form-control-sm">
+                                </div>
+                                <div class="form-group mr-2">
+                                    <label class="mr-1">To:</label>
+                                    <input type="date" name="to" value="{{ request('to') }}"
+                                        class="form-control form-control-sm">
+                                </div>
+                                <button class="btn btn-primary btn-sm" type="submit">
+                                    <i class="fas fa-search"></i> Apply
+                                </button>
+                            </form>
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Description</th>
+                                            <th class="text-right">Debit</th>
+                                            <th class="text-right">Credit</th>
+                                            <th class="text-right">Balance</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="rows"></tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -53,7 +90,9 @@
             });
             const res = await fetch(`{{ route('reports.cash-ledger') }}?${params.toString()}`, {
                 headers: {
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
+                        'content')
                 }
             });
             const data = await res.json();
@@ -64,12 +103,37 @@
                 tr.innerHTML = `
       <td>${r.date}</td>
       <td>${r.description || ''}</td>
-      <td class="text-right">${r.debit.toFixed(2)}</td>
-      <td class="text-right">${r.credit.toFixed(2)}</td>
-      <td class="text-right">${r.balance.toFixed(2)}</td>
+      <td class="text-right">${formatNumber(r.debit)}</td>
+      <td class="text-right">${formatNumber(r.credit)}</td>
+      <td class="text-right">${formatNumber(r.balance)}</td>
     `;
                 tbody.appendChild(tr);
             });
         });
+
+        function formatNumber(num) {
+            return new Intl.NumberFormat('id-ID', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(num);
+        }
+
+        function exportToCSV() {
+            const params = new URLSearchParams({
+                from: '{{ request('from') }}',
+                to: '{{ request('to') }}',
+                export: 'csv'
+            });
+            window.open(`{{ route('reports.cash-ledger') }}?${params.toString()}`, '_blank');
+        }
+
+        function exportToPDF() {
+            const params = new URLSearchParams({
+                from: '{{ request('from') }}',
+                to: '{{ request('to') }}',
+                export: 'pdf'
+            });
+            window.open(`{{ route('reports.cash-ledger') }}?${params.toString()}`, '_blank');
+        }
     </script>
 @endpush

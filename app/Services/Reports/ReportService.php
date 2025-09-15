@@ -218,7 +218,7 @@ class ReportService
 
     public function getCashLedger(array $filters = []): array
     {
-        $accountId = !empty($filters['account_id']) ? (int)$filters['account_id'] : (int) DB::table('accounts')->where('code', '1.1.2.01')->value('id');
+        $accountId = !empty($filters['account_id']) ? (int)$filters['account_id'] : (int) DB::table('accounts')->where('code', '1.1.1')->value('id');
         $q = DB::table('journal_lines as jl')
             ->join('journals as j', 'j.id', '=', 'jl.journal_id')
             ->select('j.date', 'j.description', 'jl.debit', 'jl.credit')
