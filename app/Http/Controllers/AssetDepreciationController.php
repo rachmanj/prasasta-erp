@@ -7,14 +7,21 @@ use App\Models\AssetDepreciationRun;
 use App\Models\AssetDepreciationEntry;
 use App\Models\Asset;
 use App\Services\Accounting\FixedAssetService;
+use App\Services\Accounting\PostingService;
+use App\Services\Accounting\PeriodCloseService;
 use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
 
 class AssetDepreciationController extends Controller
 {
+    private FixedAssetService $fixedAssetService;
+
     public function __construct(
-        private FixedAssetService $fixedAssetService
-    ) {}
+        private PostingService $postingService,
+        private PeriodCloseService $periodCloseService
+    ) {
+        $this->fixedAssetService = new FixedAssetService($postingService, $periodCloseService);
+    }
 
     public function index()
     {

@@ -179,6 +179,21 @@ Route::middleware('auth')->group(function () {
         Route::get('/data', [AssetController::class, 'data'])->name('assets.data');
         Route::get('/create', [AssetController::class, 'create'])->middleware('permission:assets.create')->name('assets.create');
         Route::post('/', [AssetController::class, 'store'])->middleware('permission:assets.create')->name('assets.store');
+
+        // Fixed Assets Depreciation - must be before /{asset} route
+        Route::prefix('depreciation')->middleware(['permission:assets.depreciation.run'])->group(function () {
+            Route::get('/', [AssetDepreciationController::class, 'index'])->name('assets.depreciation.index');
+            Route::get('/data', [AssetDepreciationController::class, 'data'])->name('assets.depreciation.data');
+            Route::get('/create', [AssetDepreciationController::class, 'create'])->name('assets.depreciation.create');
+            Route::post('/', [AssetDepreciationController::class, 'store'])->name('assets.depreciation.store');
+            Route::get('/{run}', [AssetDepreciationController::class, 'show'])->name('assets.depreciation.show');
+            Route::get('/{run}/calculate', [AssetDepreciationController::class, 'calculate'])->name('assets.depreciation.calculate');
+            Route::post('/{run}/entries', [AssetDepreciationController::class, 'createEntries'])->name('assets.depreciation.createEntries');
+            Route::post('/{run}/post', [AssetDepreciationController::class, 'post'])->name('assets.depreciation.post');
+            Route::post('/{run}/reverse', [AssetDepreciationController::class, 'reverse'])->name('assets.depreciation.reverse');
+            Route::get('/{run}/entries', [AssetDepreciationController::class, 'entries'])->name('assets.depreciation.entries');
+        });
+
         Route::get('/{asset}', [AssetController::class, 'show'])->name('assets.show');
         Route::get('/{asset}/edit', [AssetController::class, 'edit'])->middleware('permission:assets.update')->name('assets.edit');
         Route::patch('/{asset}', [AssetController::class, 'update'])->middleware('permission:assets.update')->name('assets.update');
@@ -193,7 +208,7 @@ Route::middleware('auth')->group(function () {
         Route::prefix('import')->middleware(['permission:assets.create'])->group(function () {
             Route::get('/', [AssetImportController::class, 'index'])->name('assets.import.index');
             Route::get('/template', [AssetImportController::class, 'template'])->name('assets.import.template');
-            Route::post('/validate', [AssetImportController::class, 'validate'])->name('assets.import.validate');
+            Route::post('/validate', [AssetImportController::class, 'validateImport'])->name('assets.import.validate');
             Route::post('/import', [AssetImportController::class, 'import'])->name('assets.import.import');
             Route::get('/reference-data', [AssetImportController::class, 'getReferenceData'])->name('assets.import.reference-data');
             Route::post('/bulk-update', [AssetImportController::class, 'bulkUpdate'])->middleware('permission:assets.update')->name('assets.import.bulk-update');
@@ -221,19 +236,6 @@ Route::middleware('auth')->group(function () {
         });
     });
 
-    // Fixed Assets Depreciation
-    Route::prefix('assets/depreciation')->middleware(['permission:assets.depreciation.run'])->group(function () {
-        Route::get('/', [AssetDepreciationController::class, 'index'])->name('assets.depreciation.index');
-        Route::get('/data', [AssetDepreciationController::class, 'data'])->name('assets.depreciation.data');
-        Route::get('/create', [AssetDepreciationController::class, 'create'])->name('assets.depreciation.create');
-        Route::post('/', [AssetDepreciationController::class, 'store'])->name('assets.depreciation.store');
-        Route::get('/{run}', [AssetDepreciationController::class, 'show'])->name('assets.depreciation.show');
-        Route::get('/{run}/calculate', [AssetDepreciationController::class, 'calculate'])->name('assets.depreciation.calculate');
-        Route::post('/{run}/entries', [AssetDepreciationController::class, 'createEntries'])->name('assets.depreciation.createEntries');
-        Route::post('/{run}/post', [AssetDepreciationController::class, 'post'])->name('assets.depreciation.post');
-        Route::post('/{run}/reverse', [AssetDepreciationController::class, 'reverse'])->name('assets.depreciation.reverse');
-        Route::get('/{run}/entries', [AssetDepreciationController::class, 'entries'])->name('assets.depreciation.entries');
-    });
 
     // Asset depreciation schedule
     Route::get('/assets/{asset}/schedule', [AssetDepreciationController::class, 'schedule'])->middleware(['permission:assets.view'])->name('assets.schedule');

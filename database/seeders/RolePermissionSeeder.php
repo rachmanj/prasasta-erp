@@ -141,6 +141,7 @@ class RolePermissionSeeder extends Seeder
                 'ap.payments.post',
                 'cash_expenses.post',
                 // Fixed Assets posting
+                'assets.view',
                 'assets.depreciation.run',
                 'assets.depreciation.reverse',
                 'assets.disposal.view',
@@ -158,11 +159,34 @@ class RolePermissionSeeder extends Seeder
             'cashier' => [
                 'reports.view',
                 'journals.create',
-                // Frontline cash operations (optional)
+                // Frontline cash operations
+                'ar.receipts.view',
                 'ar.receipts.create',
+                'ap.payments.view',
                 'ap.payments.create',
+                // Customer management for cash operations
+                'customers.view',
             ],
-            'auditor' => ['reports.view'],
+            'auditor' => [
+                'reports.view',
+                // Read-only access to all modules for audit purposes
+                'journals.view',
+                'ar.invoices.view',
+                'ar.receipts.view',
+                'ap.invoices.view',
+                'ap.payments.view',
+                'cash_expenses.view',
+                'assets.view',
+                'asset_categories.view',
+                'assets.reports.view',
+                'customers.view',
+                'vendors.view',
+                'projects.view',
+                'funds.view',
+                'departments.view',
+                'accounts.view',
+                'periods.view',
+            ],
         ];
 
         foreach ($roles as $roleName => $perms) {
