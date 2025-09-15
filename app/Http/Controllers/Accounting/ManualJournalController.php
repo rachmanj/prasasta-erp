@@ -46,15 +46,16 @@ class ManualJournalController extends Controller
         $payload = [
             'date' => $data['date'],
             'description' => $data['description'] ?? null,
+            'status' => 'draft',
             'source_type' => 'manual_journal',
             'source_id' => 0,
-            'posted_by' => $request->user()->id,
+            'posted_by' => null, // Will be set when approved
             'lines' => $data['lines'],
         ];
 
         $journalId = $this->service->postJournal($payload);
 
-        return redirect()->route('journals.manual.create')->with('success', "Journal #{$journalId} posted");
+        return redirect()->route('journals.manual.create')->with('success', "Journal #{$journalId} created as draft");
     }
 
     public function index()

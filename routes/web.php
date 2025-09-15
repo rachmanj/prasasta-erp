@@ -276,3 +276,6 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::post('logout', [\App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'destroy'])->name('logout');
+
+// GET logout route for testing purposes (development only)
+Route::get('logout', [\App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'destroy'])->name('logout.get');

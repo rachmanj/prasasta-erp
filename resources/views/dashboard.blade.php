@@ -9,6 +9,70 @@
 @endsection
 
 @section('content')
+    <!-- User Role Information Card -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card card-outline card-info">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-user-shield"></i> User Information
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Name:</strong></td>
+                                    <td>{{ auth()->user()->name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Email:</strong></td>
+                                    <td>{{ auth()->user()->email }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Username:</strong></td>
+                                    <td>{{ auth()->user()->username }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Roles:</strong></td>
+                                    <td>
+                                        @if (auth()->user()->roles->count() > 0)
+                                            @foreach (auth()->user()->roles as $role)
+                                                <span class="badge badge-primary mr-1">{{ ucfirst($role->name) }}</span>
+                                            @endforeach
+                                        @else
+                                            <span class="text-muted">No roles assigned</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Permissions:</strong></td>
+                                    <td>
+                                        @if (auth()->user()->permissions->count() > 0)
+                                            <span class="badge badge-success">{{ auth()->user()->permissions->count() }}
+                                                permissions</span>
+                                        @else
+                                            <span class="text-muted">No direct permissions</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Login Time:</strong></td>
+                                    <td>{{ now()->format('d/m/Y H:i:s') }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-lg-3 col-6">
             <div class="small-box bg-info">

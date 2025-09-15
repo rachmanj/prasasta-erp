@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('cash_expenses', function (Blueprint $table) {
-            $table->foreignId('created_by')->nullable()->after('status')->constrained('users')->onDelete('set null');
+        Schema::table('journals', function (Blueprint $table) {
+            $table->enum('status', ['draft', 'posted', 'reversed'])->default('draft')->after('description');
         });
     }
 
@@ -21,9 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('cash_expenses', function (Blueprint $table) {
-            $table->dropForeign(['created_by']);
-            $table->dropColumn('created_by');
+        Schema::table('journals', function (Blueprint $table) {
+            $table->dropColumn('status');
         });
     }
 };

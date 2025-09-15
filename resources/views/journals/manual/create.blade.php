@@ -176,15 +176,16 @@
 
             // Add event listeners for the new inputs
             tr.querySelectorAll('input').forEach(i => {
-                i.addEventListener('input', recalc);
-                if (i.type === 'number') {
-                    i.addEventListener('input', function() {
+                i.addEventListener('input', function() {
+                    if (i.type === 'number') {
                         formatNumberInput(this);
-                    });
-                }
+                    }
+                    recalc();
+                });
             });
 
-            recalc();
+            // Call recalc after a short delay to ensure DOM is ready
+            setTimeout(recalc, 50);
         }
 
         function removeLine(btn) {
@@ -213,10 +214,23 @@
 
             const diff = (td - tc);
 
-            document.getElementById('td').innerText = td.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-            document.getElementById('tc').innerText = tc.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-            document.getElementById('diff').innerText = Math.abs(diff).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-            document.getElementById('btnPost').disabled = Math.abs(diff) > 0.005 || td + tc === 0;
+            const tdElement = document.getElementById('td');
+            const tcElement = document.getElementById('tc');
+            const diffElement = document.getElementById('diff');
+
+            if (tdElement) tdElement.innerText = td.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            if (tcElement) tcElement.innerText = tc.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            if (diffElement) diffElement.innerText = Math.abs(diff).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+            // Debug logging
+            console.log('Recalc - td:', td, 'tc:', tc, 'diff:', diff, 'abs(diff):', Math.abs(diff));
+
+            const isBalanced = Math.abs(diff) <= 0.005;
+            const hasAmounts = td + tc > 0;
+            const shouldEnable = isBalanced && hasAmounts;
+
+            document.getElementById('btnPost').disabled = !shouldEnable;
+            console.log('Button enabled:', shouldEnable, 'isBalanced:', isBalanced, 'hasAmounts:', hasAmounts);
 
             updateBalanceIndicator(diff);
         }
@@ -225,23 +239,41 @@
             const indicator = document.getElementById('balance-indicator');
 
             if (diff === null) {
-                diff = parseFloat(document.getElementById('diff').innerText.replace(/,/g, '') || 0);
+                const diffElement = document.getElementById('diff');
+                if (diffElement) {
+                    diff = parseFloat(diffElement.innerText.replace(/,/g, '') || 0);
+                } else {
+                    diff = 0;
+                }
             }
 
-            if (Math.abs(diff) <= 0.005 && document.querySelectorAll('#lines tbody tr').length > 0) {
-                indicator.className = 'alert alert-success';
-                indicator.innerHTML = '<i class="fas fa-check-circle"></i> Journal is balanced';
-            } else {
-                indicator.className = 'alert alert-warning';
-                indicator.innerHTML =
-                    '<i class="fas fa-exclamation-triangle"></i> Journal is not balanced. Difference: <strong id="diff">' +
-                    Math.abs(diff).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '</strong>';
+            // Debug logging
+            console.log('Balance indicator - diff:', diff, 'abs(diff):', Math.abs(diff), 'rows:', document.querySelectorAll(
+                '#lines tbody tr').length);
+
+            const hasRows = document.querySelectorAll('#lines tbody tr').length > 0;
+            const isBalanced = Math.abs(diff) <= 0.005;
+
+            if (indicator) {
+                if (isBalanced && hasRows) {
+                    indicator.className = 'alert alert-success';
+                    indicator.innerHTML = '<i class="fas fa-check-circle"></i> Journal is balanced';
+                } else {
+                    indicator.className = 'alert alert-warning';
+                    indicator.innerHTML =
+                        '<i class="fas fa-exclamation-triangle"></i> Journal is not balanced. Difference: <strong id="diff">' +
+                        Math.abs(diff).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '</strong>';
+                }
             }
         }
 
         // Initialize with one line after document is ready
         $(document).ready(function() {
             addLine();
+            // Call recalc multiple times to ensure button state is correct
+            setTimeout(recalc, 100);
+            setTimeout(recalc, 300);
+            setTimeout(recalc, 500);
         });
     </script>
 @endsection

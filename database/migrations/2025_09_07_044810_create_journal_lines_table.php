@@ -14,12 +14,12 @@ return new class extends Migration
         Schema::create('journal_lines', function (Blueprint $table) {
             $table->id();
             $table->foreignId('journal_id')->constrained('journals')->cascadeOnDelete();
-            $table->foreignId('account_id')->constrained('accounts');
+            $table->foreignId('account_id')->constrained('accounts')->restrictOnDelete();
             $table->decimal('debit', 18, 2)->default(0);
             $table->decimal('credit', 18, 2)->default(0);
-            $table->foreignId('project_id')->nullable();
-            $table->foreignId('fund_id')->nullable();
-            $table->foreignId('dept_id')->nullable();
+            $table->foreignId('project_id')->nullable()->constrained('projects')->nullOnDelete();
+            $table->foreignId('fund_id')->nullable()->constrained('funds')->nullOnDelete();
+            $table->foreignId('dept_id')->nullable()->constrained('departments')->nullOnDelete();
             $table->string('memo', 255)->nullable();
             $table->timestamps();
         });

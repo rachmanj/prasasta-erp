@@ -14,6 +14,7 @@ class ReportService
             ->join('journals as j', 'j.id', '=', 'jl.journal_id')
             ->join('accounts as a', 'a.id', '=', 'jl.account_id')
             ->whereDate('j.date', '<=', $date)
+            ->where('j.status', 'posted')
             ->selectRaw('a.id, a.code, a.name, a.type, SUM(jl.debit) as debit, SUM(jl.credit) as credit')
             ->groupBy('a.id', 'a.code', 'a.name', 'a.type')
             ->orderBy('a.code')
@@ -47,6 +48,7 @@ class ReportService
         $query = DB::table('journal_lines as jl')
             ->join('journals as j', 'j.id', '=', 'jl.journal_id')
             ->join('accounts as a', 'a.id', '=', 'jl.account_id')
+            ->where('j.status', 'posted')
             ->select('j.date', 'j.description as journal_desc', 'a.code as account_code', 'a.name as account_name', 'jl.debit', 'jl.credit', 'jl.memo');
 
         if (!empty($filters['account_id'])) {
@@ -220,7 +222,8 @@ class ReportService
         $q = DB::table('journal_lines as jl')
             ->join('journals as j', 'j.id', '=', 'jl.journal_id')
             ->select('j.date', 'j.description', 'jl.debit', 'jl.credit')
-            ->where('jl.account_id', $accountId);
+            ->where('jl.account_id', $accountId)
+            ->where('j.status', 'posted');
         if (!empty($filters['from'])) {
             $q->whereDate('j.date', '>=', $filters['from']);
         }
@@ -234,6 +237,7 @@ class ReportService
                 ->join('journals as j', 'j.id', '=', 'jl.journal_id')
                 ->where('jl.account_id', $accountId)
                 ->whereDate('j.date', '<', $filters['from'])
+                ->where('j.status', 'posted')
                 ->selectRaw('COALESCE(SUM(jl.debit - jl.credit),0) as bal')
                 ->value('bal');
             $opening = (float) $openQ;

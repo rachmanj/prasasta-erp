@@ -170,6 +170,15 @@
                                     <p>Journals</p>
                                 </a>
                             </li>
+                            @can('journals.approve')
+                                <li class="nav-item">
+                                    <a href="{{ route('journals.approval.index') }}"
+                                        class="nav-link {{ request()->routeIs('journals.approval.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Journal Approval</p>
+                                    </a>
+                                </li>
+                            @endcan
                             <li class="nav-item">
                                 <a href="{{ route('cash-expenses.index') }}"
                                     class="nav-link {{ request()->routeIs('cash-expenses.*') ? 'active' : '' }}">

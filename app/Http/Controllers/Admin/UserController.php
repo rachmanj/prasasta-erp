@@ -25,7 +25,7 @@ class UserController extends Controller
     {
         $this->authorize('users.create');
         $roles = Role::orderBy('name')->get(['id', 'name']);
-        $projects = Project::query()->orderBy('code')->get(['code', 'owner']);
+        $projects = Project::query()->orderBy('code')->get(['id', 'code', 'name']);
         $departments = Department::query()->orderBy('name')->get(['id', 'name']);
         return view('admin.users.create', compact('roles', 'projects', 'departments'));
     }
@@ -75,7 +75,7 @@ class UserController extends Controller
     {
         $this->authorize('users.update');
         $roles = Role::orderBy('name')->get(['id', 'name']);
-        $projects = Project::query()->orderBy('code')->get(['code', 'owner']);
+        $projects = Project::query()->orderBy('code')->get(['id', 'code', 'name']);
         $departments = Department::query()->orderBy('name')->get(['id', 'name']);
         return view('admin.users.edit', compact('user', 'roles', 'projects', 'departments'));
     }

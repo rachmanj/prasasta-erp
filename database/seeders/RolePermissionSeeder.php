@@ -22,6 +22,7 @@ class RolePermissionSeeder extends Seeder
             'journals.view',
             'journals.create',
             'journals.post',
+            'journals.approve',
             'journals.reverse',
             // Periods
             'periods.view',
@@ -88,6 +89,10 @@ class RolePermissionSeeder extends Seeder
             'assets.movement.delete',
             'assets.movement.approve',
             'assets.reports.view',
+            // Cash Expenses
+            'cash_expenses.view',
+            'cash_expenses.create',
+            'cash_expenses.post',
         ];
 
         foreach ($permissions as $perm) {
@@ -116,6 +121,9 @@ class RolePermissionSeeder extends Seeder
                 'ar.receipts.create',
                 'ap.payments.view',
                 'ap.payments.create',
+                // Cash Expenses
+                'cash_expenses.view',
+                'cash_expenses.create',
                 // Fixed Assets
                 'assets.view',
                 'asset_categories.view',
@@ -124,11 +132,14 @@ class RolePermissionSeeder extends Seeder
             'approver' => [
                 'reports.view',
                 // Posting permissions
+                'journals.view',
+                'journals.approve',
                 'journals.post',
                 'ar.invoices.post',
                 'ap.invoices.post',
                 'ar.receipts.post',
                 'ap.payments.post',
+                'cash_expenses.post',
                 // Fixed Assets posting
                 'assets.depreciation.run',
                 'assets.depreciation.reverse',

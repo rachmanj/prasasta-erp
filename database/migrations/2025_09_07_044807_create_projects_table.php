@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('name', 150);
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
-            $table->foreignId('fund_id')->nullable();
+            $table->foreignId('fund_id')->nullable()->constrained('funds')->nullOnDelete();
             $table->decimal('budget_total', 18, 2)->default(0);
             $table->enum('status', ['planned', 'active', 'completed', 'on_hold', 'cancelled'])->default('active');
             $table->timestamps();

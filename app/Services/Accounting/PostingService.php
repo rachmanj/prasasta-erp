@@ -24,11 +24,12 @@ class PostingService
             $journalId = DB::table('journals')->insertGetId([
                 'date' => $payload['date'],
                 'description' => $payload['description'] ?? null,
+                'status' => $payload['status'] ?? 'draft',
                 'period_id' => $payload['period_id'] ?? null,
                 'source_type' => $payload['source_type'],
                 'source_id' => $payload['source_id'],
                 'posted_by' => $payload['posted_by'] ?? null,
-                'posted_at' => now(),
+                'posted_at' => $payload['status'] === 'posted' ? now() : null,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -57,6 +58,31 @@ class PostingService
 
             return $journalId;
         });
+    }
+
+    public function postDraftJournal(int $journalId, int $postedBy): void
+    {
+        $journal = DB::table('journals')->where('id', $journalId)->first();
+        if (!$journal) {
+            throw new \InvalidArgumentException('Journal not found');
+        }
+
+        if ($journal->status !== 'draft') {
+            throw new \RuntimeException('Only draft journals can be posted');
+        }
+
+        if ($this->periods->isDateClosed($journal->date)) {
+            throw new \RuntimeException('Cannot post to a closed period');
+        }
+
+        DB::table('journals')
+            ->where('id', $journalId)
+            ->update([
+                'status' => 'posted',
+                'posted_by' => $postedBy,
+                'posted_at' => now(),
+                'updated_at' => now(),
+            ]);
     }
 
     public function reverseJournal(int $journalId, ?string $date = null, ?int $postedBy = null): int

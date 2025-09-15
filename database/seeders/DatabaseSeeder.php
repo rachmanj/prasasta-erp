@@ -13,17 +13,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $user = User::firstOrCreate(
-            ['email' => 'admin@example.com'],
-            ['name' => 'Admin', 'username' => 'superadmin', 'password' => bcrypt('password')]
-        );
-
         $this->call([
             CoASeeder::class,
             TaxCodeSeeder::class,
             FundProjectSeeder::class,
             RolePermissionSeeder::class,
-            DemoJournalSeeder::class,
+            SampleUsersSeeder::class,
             TermsSeeder::class,
         ]);
     }
