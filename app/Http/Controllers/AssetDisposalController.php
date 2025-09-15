@@ -138,11 +138,15 @@ class AssetDisposalController extends Controller
                 'book_value_at_disposal' => $asset->current_book_value,
                 'disposal_reason' => $request->disposal_reason,
                 'disposal_method' => $request->disposal_method,
-                'disposal_reference' => $request->disposal_reference,
+                'disposal_reference' => null, // Will be auto-generated
                 'notes' => $request->notes,
                 'created_by' => Auth::id(),
                 'status' => 'draft',
             ]);
+
+            // Generate auto-number for disposal reference
+            $ym = date('Ym', strtotime($request->disposal_date));
+            $disposal->update(['disposal_reference' => sprintf('DIS-%s-%06d', $ym, $disposal->id)]);
 
             // Update asset status to disposed
             $asset->update([

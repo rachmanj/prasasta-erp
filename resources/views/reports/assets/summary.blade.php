@@ -236,7 +236,7 @@
                                             @foreach ($summary['recent_disposals']->take(5) as $disposal)
                                                 <li class="mb-1">
                                                     <small
-                                                        class="text-muted">{{ $disposal->disposal_date->format('d/m/Y') }}</small><br>
+                                                        class="text-muted">{{ $disposal->disposal_date->format('d-M-Y') }}</small><br>
                                                     <strong>{{ $disposal->asset->code }}</strong> -
                                                     {{ $disposal->disposal_type_display }}
                                                     <span
@@ -257,7 +257,7 @@
                                             @foreach ($summary['recent_movements']->take(5) as $movement)
                                                 <li class="mb-1">
                                                     <small
-                                                        class="text-muted">{{ $movement->movement_date->format('d/m/Y') }}</small><br>
+                                                        class="text-muted">{{ $movement->movement_date->format('d-M-Y') }}</small><br>
                                                     <strong>{{ $movement->asset->code }}</strong> -
                                                     {{ $movement->movement_type_display }}
                                                     <span

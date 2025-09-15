@@ -66,7 +66,7 @@ class SalesInvoiceController extends Controller
 
             // Generate human-readable number
             $ym = date('Ym', strtotime($data['date']));
-            $invoice->update(['invoice_no' => sprintf('SI-%s-%06d', $ym, $invoice->id)]);
+            $invoice->update(['invoice_no' => sprintf('SINV-%s-%06d', $ym, $invoice->id)]);
 
             $total = 0;
             foreach ($data['lines'] as $l) {

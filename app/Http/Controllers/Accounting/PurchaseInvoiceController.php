@@ -66,7 +66,7 @@ class PurchaseInvoiceController extends Controller
             ]);
 
             $ym = date('Ym', strtotime($data['date']));
-            $invoice->update(['invoice_no' => sprintf('PI-%s-%06d', $ym, $invoice->id)]);
+            $invoice->update(['invoice_no' => sprintf('PINV-%s-%06d', $ym, $invoice->id)]);
 
             $total = 0;
             foreach ($data['lines'] as $l) {

@@ -99,7 +99,7 @@
             data.rows.forEach(r => {
                 const tr = document.createElement('tr');
                 tr.innerHTML =
-                    `<td>${r.date}</td><td>${r.journal_desc ?? ''}</td><td>${r.account_code} - ${r.account_name}</td><td class="text-right">${formatNumber(r.debit)}</td><td class="text-right">${formatNumber(r.credit)}</td><td>${r.memo ?? ''}</td>`;
+                    `<td>${formatDate(r.date)}</td><td>${r.journal_desc ?? ''}</td><td>${r.account_code} - ${r.account_name}</td><td class="text-right">${formatNumber(r.debit)}</td><td class="text-right">${formatNumber(r.credit)}</td><td>${r.memo ?? ''}</td>`;
                 tbody.appendChild(tr);
             });
         }
@@ -114,6 +114,15 @@
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             }).format(num);
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const day = date.getDate().toString().padStart(2, '0');
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const month = months[date.getMonth()];
+            const year = date.getFullYear();
+            return `${day}-${month}-${year}`;
         }
 
         function exportToCSV() {

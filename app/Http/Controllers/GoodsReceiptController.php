@@ -50,7 +50,7 @@ class GoodsReceiptController extends Controller
                 'total_amount' => 0,
             ]);
             $ym = date('Ym', strtotime($data['date']));
-            $grn->update(['grn_no' => sprintf('GRN-%s-%06d', $ym, $grn->id)]);
+            $grn->update(['grn_no' => sprintf('GR-%s-%06d', $ym, $grn->id)]);
             $total = 0;
             foreach ($data['lines'] as $l) {
                 $amount = (float)$l['qty'] * (float)$l['unit_price'];

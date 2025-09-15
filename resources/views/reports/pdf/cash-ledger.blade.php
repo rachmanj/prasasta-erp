@@ -12,7 +12,7 @@
     <tbody>
         @foreach ($data['rows'] ?? [] as $r)
             <tr>
-                <td>{{ $r['date'] }}</td>
+                <td>{{ \Carbon\Carbon::parse($r['date'])->format('d-M-Y') }}</td>
                 <td>{{ $r['description'] ?? '' }}</td>
                 <td align="right">{{ number_format($r['debit'], 2) }}</td>
                 <td align="right">{{ number_format($r['credit'], 2) }}</td>

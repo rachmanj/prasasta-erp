@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Accounting\CashExpense;
 use App\Services\Accounting\PostingService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -49,19 +50,24 @@ class CashExpenseController extends Controller
         $amount = $data['amount_raw'] ?? $data['amount'];
 
         return DB::transaction(function () use ($data, $amount) {
+            // Generate voucher number: CEV-YYYYMM-######
+            $dateYm = date('Ym', strtotime($data['date']));
+            $voucherNumber = sprintf('CEV-%s-%06d', $dateYm, DB::table('cash_expenses')->count() + 1);
+
             $exp = CashExpense::create([
+                'voucher_number' => $voucherNumber,
                 'date' => $data['date'],
                 'description' => $data['description'] ?? null,
                 'account_id' => $data['expense_account_id'],
                 'amount' => $amount,
                 'status' => 'posted',
-                'created_by' => auth()->id(),
+                'created_by' => Auth::id(),
             ]);
 
             // Post journal: Debit Expense, Credit Cash
             $this->posting->postJournal([
                 'date' => $exp->date,
-                'description' => 'Cash Expense #' . $exp->id,
+                'description' => 'Cash Expense Voucher ' . $exp->voucher_number,
                 'source_type' => 'cash_expense',
                 'source_id' => $exp->id,
                 'lines' => [
@@ -88,7 +94,7 @@ class CashExpenseController extends Controller
                     ->where('jl.credit', '>', 0);
             })
             ->leftJoin('accounts as ca', 'ca.id', '=', 'jl.account_id')
-            ->select('ce.id', 'ce.date', 'ce.description', 'a.code as expense_code', 'a.name as expense_name', 'ce.amount', 'u.name as creator_name', 'ca.code as cash_code', 'ca.name as cash_name');
+            ->select('ce.id', 'ce.voucher_number', 'ce.date', 'ce.description', 'a.code as expense_code', 'a.name as expense_name', 'ce.amount', 'u.name as creator_name', 'ca.code as cash_code', 'ca.name as cash_name');
 
         return DataTables::of($q)
             ->addIndexColumn()

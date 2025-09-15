@@ -155,7 +155,7 @@
                                                 <td>{{ $asset->fund_name ?? '-' }}</td>
                                                 <td>{{ $asset->project_name ?? '-' }}</td>
                                                 <td>{{ $asset->department_name ?? '-' }}</td>
-                                                <td>{{ $asset->acquisition_date ? $asset->acquisition_date->format('d/m/Y') : '-' }}
+                                                <td>{{ $asset->acquisition_date ? $asset->acquisition_date->format('d-M-Y') : '-' }}
                                                 </td>
                                                 <td class="text-right">Rp
                                                     {{ number_format($asset->acquisition_cost, 0, ',', '.') }}</td>

@@ -1,4 +1,4 @@
-<h3>AP Aging (As of {{ $as_of }})</h3>
+<h3>AP Aging (As of {{ \Carbon\Carbon::parse($as_of)->format('d-M-Y') }})</h3>
 <table width="100%" cellspacing="0" cellpadding="4" border="1">
     <thead>
         <tr>
