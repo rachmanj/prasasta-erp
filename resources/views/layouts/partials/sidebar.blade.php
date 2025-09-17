@@ -4,7 +4,7 @@
     <a href="/dashboard" class="brand-link">
         <img src="{{ asset('adminlte/dist/img/AdminLTELogo.png') }}" alt="AdminLTE Logo"
             class="brand-image img-circle elevation-3" style="opacity: .8">
-        <span class="brand-text font-weight-light"><b>DDS</b> - Laravel</span>
+        <span class="brand-text font-weight-light"><b>Prasasta</b> ERP</span>
     </a>
 
     <!-- Sidebar -->
@@ -207,13 +207,301 @@
                         </ul>
                     </li>
                 @endcan
+
+                <!-- Fixed Assets Group (moved under MAIN) -->
+                @canany(['assets.view', 'asset_categories.view', 'assets.depreciation.run', 'assets.disposal.view',
+                    'assets.movement.view'])
+                    @php
+                        $assetsActive = request()->routeIs('assets.*') || request()->routeIs('asset-categories.*');
+                    @endphp
+                    <li class="nav-item {{ $assetsActive ? 'menu-is-opening menu-open' : '' }}">
+                        <a href="#" class="nav-link {{ $assetsActive ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-building"></i>
+                            <p>
+                                Fixed Assets
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            @can('asset_categories.view')
+                                <li class="nav-item">
+                                    <a href="{{ route('asset-categories.index') }}"
+                                        class="nav-link {{ request()->routeIs('asset-categories.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Asset Categories</p>
+                                    </a>
+                                </li>
+                            @endcan
+                            @can('assets.view')
+                                <li class="nav-item">
+                                    <a href="{{ route('assets.index') }}"
+                                        class="nav-link {{ request()->routeIs('assets.*') && !request()->routeIs('assets.depreciation.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Assets</p>
+                                    </a>
+                                </li>
+                            @endcan
+                            @can('assets.depreciation.run')
+                                <li class="nav-item">
+                                    <a href="{{ route('assets.depreciation.index') }}"
+                                        class="nav-link {{ request()->routeIs('assets.depreciation.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Depreciation Runs</p>
+                                    </a>
+                                </li>
+                            @endcan
+                            @can('assets.disposal.view')
+                                <li class="nav-item">
+                                    <a href="{{ route('assets.disposals.index') }}"
+                                        class="nav-link {{ request()->routeIs('assets.disposals.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Asset Disposals</p>
+                                    </a>
+                                </li>
+                            @endcan
+                            @can('assets.movement.view')
+                                <li class="nav-item">
+                                    <a href="{{ route('assets.movements.index') }}"
+                                        class="nav-link {{ request()->routeIs('assets.movements.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Asset Movements</p>
+                                    </a>
+                                </li>
+                            @endcan
+                            @can('assets.create')
+                                <li class="nav-item">
+                                    <a href="{{ route('assets.import.index') }}"
+                                        class="nav-link {{ request()->routeIs('assets.import.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Asset Import</p>
+                                    </a>
+                                </li>
+                            @endcan
+                            @can('assets.view')
+                                <li class="nav-item">
+                                    <a href="{{ route('assets.data-quality.index') }}"
+                                        class="nav-link {{ request()->routeIs('assets.data-quality.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Data Quality</p>
+                                    </a>
+                                </li>
+                            @endcan
+                            @can('assets.update')
+                                <li class="nav-item">
+                                    <a href="{{ route('assets.bulk-operations.index') }}"
+                                        class="nav-link {{ request()->routeIs('assets.bulk-operations.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Bulk Operations</p>
+                                    </a>
+                                </li>
+                            @endcan
+                        </ul>
+                    </li>
+                @endcanany
+
+                <!-- Master Data Group (moved under MAIN, only Projects/Funds/Departments) -->
+                @canany(['projects.view', 'funds.view', 'departments.view'])
+                    @php
+                        $masterActive =
+                            request()->routeIs('projects.*') ||
+                            request()->routeIs('funds.*') ||
+                            request()->routeIs('departments.*');
+                    @endphp
+                    <li class="nav-item {{ $masterActive ? 'menu-is-opening menu-open' : '' }}">
+                        <a href="#" class="nav-link {{ $masterActive ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-database"></i>
+                            <p>
+                                Master Data
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            @can('projects.view')
+                                <li class="nav-item">
+                                    <a href="{{ route('projects.index') }}"
+                                        class="nav-link {{ request()->routeIs('projects.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Projects</p>
+                                    </a>
+                                </li>
+                            @endcan
+                            @can('funds.view')
+                                <li class="nav-item">
+                                    <a href="{{ route('funds.index') }}"
+                                        class="nav-link {{ request()->routeIs('funds.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Funds</p>
+                                    </a>
+                                </li>
+                            @endcan
+                            @can('departments.view')
+                                <li class="nav-item">
+                                    <a href="{{ route('departments.index') }}"
+                                        class="nav-link {{ request()->routeIs('departments.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Departments</p>
+                                    </a>
+                                </li>
+                            @endcan
+                        </ul>
+                    </li>
+                @endcanany
+
+                <!-- Courses Group (moved under MAIN) -->
+                @canany(['course_categories.view', 'courses.view', 'course_batches.view', 'enrollments.view'])
+                    @php
+                        $coursesActive =
+                            request()->routeIs('course-categories.*') ||
+                            request()->routeIs('courses.*') ||
+                            request()->routeIs('course-batches.*') ||
+                            request()->routeIs('enrollments.*');
+                    @endphp
+                    <li class="nav-item {{ $coursesActive ? 'menu-is-opening menu-open' : '' }}">
+                        <a href="#" class="nav-link {{ $coursesActive ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-graduation-cap"></i>
+                            <p>
+                                Courses
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            @can('course_categories.view')
+                                <li class="nav-item">
+                                    <a href="{{ route('course-categories.index') }}"
+                                        class="nav-link {{ request()->routeIs('course-categories.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Course Categories</p>
+                                    </a>
+                                </li>
+                            @endcan
+                            @can('courses.view')
+                                <li class="nav-item">
+                                    <a href="{{ route('courses.index') }}"
+                                        class="nav-link {{ request()->routeIs('courses.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Courses</p>
+                                    </a>
+                                </li>
+                            @endcan
+                            @can('course_batches.view')
+                                <li class="nav-item">
+                                    <a href="{{ route('course-batches.index') }}"
+                                        class="nav-link {{ request()->routeIs('course-batches.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Course Batches</p>
+                                    </a>
+                                </li>
+                            @endcan
+                            @can('enrollments.view')
+                                <li class="nav-item">
+                                    <a href="{{ route('enrollments.index') }}"
+                                        class="nav-link {{ request()->routeIs('enrollments.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Enrollments</p>
+                                    </a>
+                                </li>
+                            @endcan
+                            @can('trainers.view')
+                                <li class="nav-item">
+                                    <a href="{{ route('trainers.index') }}"
+                                        class="nav-link {{ request()->routeIs('trainers.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Trainers</p>
+                                    </a>
+                                </li>
+                            @endcan
+                            @can('payment_plans.view')
+                                <li class="nav-item">
+                                    <a href="{{ route('payment-plans.index') }}"
+                                        class="nav-link {{ request()->routeIs('payment-plans.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Payment Plans</p>
+                                    </a>
+                                </li>
+                            @endcan
+                            @can('installment_payments.view')
+                                <li class="nav-item">
+                                    <a href="{{ route('installment-payments.index') }}"
+                                        class="nav-link {{ request()->routeIs('installment-payments.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Installment Payments</p>
+                                    </a>
+                                </li>
+                            @endcan
+                            @can('revenue_recognition.view')
+                                <li class="nav-item">
+                                    <a href="{{ route('revenue-recognition.index') }}"
+                                        class="nav-link {{ request()->routeIs('revenue-recognition.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Revenue Recognition</p>
+                                    </a>
+                                </li>
+                            @endcan
+                        </ul>
+                    </li>
+                @endcanany
+
+                <!-- Dashboards Group -->
+                @canany(['dashboard.executive.view', 'dashboard.financial.view', 'dashboard.operational.view',
+                    'dashboard.performance.view'])
+                    @php
+                        $dashboardsActive =
+                            request()->routeIs('dashboard.executive.*') ||
+                            request()->routeIs('dashboard.financial.*') ||
+                            request()->routeIs('dashboard.operational.*') ||
+                            request()->routeIs('dashboard.performance.*');
+                    @endphp
+                    <li class="nav-item {{ $dashboardsActive ? 'menu-is-opening menu-open' : '' }}">
+                        <a href="#" class="nav-link {{ $dashboardsActive ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-chart-line"></i>
+                            <p>
+                                Dashboards
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            @can('dashboard.executive.view')
+                                <li class="nav-item">
+                                    <a href="{{ route('dashboard.executive.index') }}"
+                                        class="nav-link {{ request()->routeIs('dashboard.executive.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Executive Dashboard</p>
+                                    </a>
+                                </li>
+                            @endcan
+                            @can('dashboard.financial.view')
+                                <li class="nav-item">
+                                    <a href="{{ route('dashboard.financial.index') }}"
+                                        class="nav-link {{ request()->routeIs('dashboard.financial.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Financial Dashboard</p>
+                                    </a>
+                                </li>
+                            @endcan
+                            @can('dashboard.operational.view')
+                                <li class="nav-item">
+                                    <a href="{{ route('dashboard.operational.index') }}"
+                                        class="nav-link {{ request()->routeIs('dashboard.operational.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Operational Dashboard</p>
+                                    </a>
+                                </li>
+                            @endcan
+                            @can('dashboard.performance.view')
+                                <li class="nav-item">
+                                    <a href="{{ route('dashboard.performance.index') }}"
+                                        class="nav-link {{ request()->routeIs('dashboard.performance.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Performance Dashboard</p>
+                                    </a>
+                                </li>
+                            @endcan
+                        </ul>
+                    </li>
+                @endcanany
+
                 <!-- Reports Section -->
                 @include('layouts.partials.menu.reports')
-
-                @canany(['projects.view', 'funds.view', 'departments.view', 'assets.view', 'asset_categories.view',
-                    'assets.depreciation.run'])
-                    @include('layouts.partials.menu.master')
-                @endcanany
 
                 @can('view-admin')
                     @include('layouts.partials.menu.admin')

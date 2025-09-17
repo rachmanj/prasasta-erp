@@ -16,6 +16,22 @@ use App\Http\Controllers\Accounting\AccountController;
 use App\Http\Controllers\Accounting\CashExpenseController;
 use App\Http\Controllers\Master\CustomerController;
 use App\Http\Controllers\Master\VendorController;
+use App\Http\Controllers\CourseCategoryController;
+use App\Http\Controllers\CourseController;
+use App\Http\Controllers\CourseBatchController;
+use App\Http\Controllers\EnrollmentController;
+use App\Http\Controllers\TrainerController;
+use App\Http\Controllers\PaymentPlanController;
+use App\Http\Controllers\InstallmentPaymentController;
+use App\Http\Controllers\RevenueRecognitionController;
+use App\Http\Controllers\PaymentReportController;
+use App\Http\Controllers\RevenueReportController;
+use App\Http\Controllers\CourseReportController;
+use App\Http\Controllers\TrainerReportController;
+use App\Http\Controllers\ExecutiveDashboardController;
+use App\Http\Controllers\FinancialDashboardController;
+use App\Http\Controllers\OperationalDashboardController;
+use App\Http\Controllers\PerformanceDashboardController;
 use App\Http\Controllers\Dimensions\ProjectController as DimProjectController;
 use App\Http\Controllers\Dimensions\FundController as DimFundController;
 use App\Http\Controllers\Dimensions\DepartmentController as DimDepartmentController;
@@ -90,6 +106,160 @@ Route::middleware('auth')->group(function () {
         Route::get('/{vendor}/assets', [VendorController::class, 'assets'])->name('vendors.assets');
         Route::get('/{vendor}/purchase-orders', [VendorController::class, 'purchaseOrders'])->name('vendors.purchase-orders');
         Route::get('/{vendor}/asset-acquisition-history', [VendorController::class, 'assetAcquisitionHistory'])->name('vendors.asset-acquisition-history');
+    });
+
+    // Course Management
+    Route::prefix('course-management')->group(function () {
+        // Course Categories
+        Route::prefix('course-categories')->group(function () {
+            Route::get('/', [CourseCategoryController::class, 'index'])->name('course-categories.index');
+            Route::get('/data', [CourseCategoryController::class, 'data'])->name('course-categories.data');
+            Route::get('/create', [CourseCategoryController::class, 'create'])->name('course-categories.create');
+            Route::post('/', [CourseCategoryController::class, 'store'])->name('course-categories.store');
+            Route::get('/{courseCategory}/edit', [CourseCategoryController::class, 'edit'])->name('course-categories.edit');
+            Route::patch('/{courseCategory}', [CourseCategoryController::class, 'update'])->name('course-categories.update');
+        });
+
+        // Courses
+        Route::prefix('courses')->group(function () {
+            Route::get('/', [CourseController::class, 'index'])->name('courses.index');
+            Route::get('/data', [CourseController::class, 'data'])->name('courses.data');
+            Route::get('/create', [CourseController::class, 'create'])->name('courses.create');
+            Route::post('/', [CourseController::class, 'store'])->name('courses.store');
+            Route::get('/{course}/edit', [CourseController::class, 'edit'])->name('courses.edit');
+            Route::patch('/{course}', [CourseController::class, 'update'])->name('courses.update');
+            Route::delete('/{course}', [CourseController::class, 'destroy'])->name('courses.destroy');
+        });
+
+        // Course Batches
+        Route::prefix('course-batches')->group(function () {
+            Route::get('/', [CourseBatchController::class, 'index'])->name('course-batches.index');
+            Route::get('/data', [CourseBatchController::class, 'data'])->name('course-batches.data');
+            Route::get('/create', [CourseBatchController::class, 'create'])->name('course-batches.create');
+            Route::post('/', [CourseBatchController::class, 'store'])->name('course-batches.store');
+            Route::get('/{courseBatch}/edit', [CourseBatchController::class, 'edit'])->name('course-batches.edit');
+            Route::patch('/{courseBatch}', [CourseBatchController::class, 'update'])->name('course-batches.update');
+            Route::delete('/{courseBatch}', [CourseBatchController::class, 'destroy'])->name('course-batches.destroy');
+        });
+
+        // Enrollments
+        Route::prefix('enrollments')->group(function () {
+            Route::get('/', [EnrollmentController::class, 'index'])->name('enrollments.index');
+            Route::get('/data', [EnrollmentController::class, 'data'])->name('enrollments.data');
+            Route::get('/create', [EnrollmentController::class, 'create'])->name('enrollments.create');
+            Route::post('/', [EnrollmentController::class, 'store'])->name('enrollments.store');
+            Route::get('/{enrollment}/edit', [EnrollmentController::class, 'edit'])->name('enrollments.edit');
+            Route::patch('/{enrollment}', [EnrollmentController::class, 'update'])->name('enrollments.update');
+            Route::delete('/{enrollment}', [EnrollmentController::class, 'destroy'])->name('enrollments.destroy');
+        });
+
+        // Trainers
+        Route::prefix('trainers')->group(function () {
+            Route::get('/', [TrainerController::class, 'index'])->name('trainers.index');
+            Route::get('/data', [TrainerController::class, 'data'])->name('trainers.data');
+            Route::get('/create', [TrainerController::class, 'create'])->name('trainers.create');
+            Route::post('/', [TrainerController::class, 'store'])->name('trainers.store');
+            Route::get('/{trainer}/edit', [TrainerController::class, 'edit'])->name('trainers.edit');
+            Route::patch('/{trainer}', [TrainerController::class, 'update'])->name('trainers.update');
+            Route::delete('/{trainer}', [TrainerController::class, 'destroy'])->name('trainers.destroy');
+        });
+
+        // Payment Plans
+        Route::prefix('payment-plans')->group(function () {
+            Route::get('/', [PaymentPlanController::class, 'index'])->name('payment-plans.index');
+            Route::get('/data', [PaymentPlanController::class, 'data'])->name('payment-plans.data');
+            Route::get('/create', [PaymentPlanController::class, 'create'])->name('payment-plans.create');
+            Route::post('/', [PaymentPlanController::class, 'store'])->name('payment-plans.store');
+            Route::get('/{paymentPlan}/edit', [PaymentPlanController::class, 'edit'])->name('payment-plans.edit');
+            Route::patch('/{paymentPlan}', [PaymentPlanController::class, 'update'])->name('payment-plans.update');
+            Route::delete('/{paymentPlan}', [PaymentPlanController::class, 'destroy'])->name('payment-plans.destroy');
+        });
+
+        // Installment Payments
+        Route::prefix('installment-payments')->group(function () {
+            Route::get('/', [InstallmentPaymentController::class, 'index'])->name('installment-payments.index');
+            Route::get('/data', [InstallmentPaymentController::class, 'data'])->name('installment-payments.data');
+            Route::get('/create', [InstallmentPaymentController::class, 'create'])->name('installment-payments.create');
+            Route::post('/', [InstallmentPaymentController::class, 'store'])->name('installment-payments.store');
+            Route::get('/{installmentPayment}/edit', [InstallmentPaymentController::class, 'edit'])->name('installment-payments.edit');
+            Route::patch('/{installmentPayment}', [InstallmentPaymentController::class, 'update'])->name('installment-payments.update');
+            Route::delete('/{installmentPayment}', [InstallmentPaymentController::class, 'destroy'])->name('installment-payments.destroy');
+            Route::post('/{installmentPayment}/process-payment', [InstallmentPaymentController::class, 'processPayment'])->name('installment-payments.process-payment');
+            Route::post('/enrollments/{enrollment}/generate-installments', [InstallmentPaymentController::class, 'generateInstallments'])->name('installment-payments.generate-installments');
+            Route::post('/update-overdue', [InstallmentPaymentController::class, 'updateOverdueInstallments'])->name('installment-payments.update-overdue');
+        });
+
+        // Revenue Recognition
+        Route::prefix('revenue-recognition')->group(function () {
+            Route::get('/', [RevenueRecognitionController::class, 'index'])->name('revenue-recognition.index');
+            Route::get('/data', [RevenueRecognitionController::class, 'data'])->name('revenue-recognition.data');
+            Route::get('/create', [RevenueRecognitionController::class, 'create'])->name('revenue-recognition.create');
+            Route::post('/', [RevenueRecognitionController::class, 'store'])->name('revenue-recognition.store');
+            Route::get('/{revenueRecognition}/edit', [RevenueRecognitionController::class, 'edit'])->name('revenue-recognition.edit');
+            Route::patch('/{revenueRecognition}', [RevenueRecognitionController::class, 'update'])->name('revenue-recognition.update');
+            Route::delete('/{revenueRecognition}', [RevenueRecognitionController::class, 'destroy'])->name('revenue-recognition.destroy');
+            Route::post('/{revenueRecognition}/recognize', [RevenueRecognitionController::class, 'recognize'])->name('revenue-recognition.recognize');
+            Route::post('/{revenueRecognition}/reverse', [RevenueRecognitionController::class, 'reverse'])->name('revenue-recognition.reverse');
+            Route::post('/batches/{batch}/recognize-batch-revenue', [RevenueRecognitionController::class, 'recognizeBatchRevenue'])->name('revenue-recognition.recognize-batch-revenue');
+            Route::post('/enrollments/{enrollment}/generate-deferred-revenue', [RevenueRecognitionController::class, 'generateDeferredRevenue'])->name('revenue-recognition.generate-deferred-revenue');
+        });
+    });
+
+    // Reports
+    Route::prefix('reports')->group(function () {
+        // Payment Reports
+        Route::prefix('payment')->group(function () {
+            Route::get('/', [PaymentReportController::class, 'index'])->name('reports.payment.index');
+            Route::get('/aging', [PaymentReportController::class, 'agingReport'])->name('reports.payment.aging');
+            Route::get('/collection', [PaymentReportController::class, 'collectionReport'])->name('reports.payment.collection');
+            Route::get('/overdue', [PaymentReportController::class, 'overdueReport'])->name('reports.payment.overdue');
+            Route::get('/aging/export', [PaymentReportController::class, 'exportAgingReport'])->name('reports.payment.aging.export');
+            Route::get('/collection/export', [PaymentReportController::class, 'exportCollectionReport'])->name('reports.payment.collection.export');
+            Route::get('/overdue/export', [PaymentReportController::class, 'exportOverdueReport'])->name('reports.payment.overdue.export');
+        });
+
+        // Revenue Reports
+        Route::prefix('revenue')->group(function () {
+            Route::get('/', [RevenueReportController::class, 'index'])->name('reports.revenue.index');
+            Route::get('/recognition', [RevenueReportController::class, 'recognitionReport'])->name('reports.revenue.recognition');
+            Route::get('/deferred', [RevenueReportController::class, 'deferredRevenueReport'])->name('reports.revenue.deferred');
+            Route::get('/recognition/export', [RevenueReportController::class, 'exportRecognitionReport'])->name('reports.revenue.recognition.export');
+            Route::get('/deferred/export', [RevenueReportController::class, 'exportDeferredRevenueReport'])->name('reports.revenue.deferred.export');
+        });
+
+        // Course Reports
+        Route::prefix('course')->group(function () {
+            Route::get('/', [CourseReportController::class, 'index'])->name('reports.course.index');
+            Route::get('/performance', [CourseReportController::class, 'performanceReport'])->name('reports.course.performance');
+            Route::get('/enrollment', [CourseReportController::class, 'enrollmentReport'])->name('reports.course.enrollment');
+            Route::get('/capacity', [CourseReportController::class, 'capacityReport'])->name('reports.course.capacity');
+            Route::get('/performance/export', [CourseReportController::class, 'exportPerformanceReport'])->name('reports.course.performance.export');
+            Route::get('/enrollment/export', [CourseReportController::class, 'exportEnrollmentReport'])->name('reports.course.enrollment.export');
+            Route::get('/capacity/export', [CourseReportController::class, 'exportCapacityReport'])->name('reports.course.capacity.export');
+        });
+
+        // Trainer Reports
+        Route::prefix('trainer')->group(function () {
+            Route::get('/', [TrainerReportController::class, 'index'])->name('reports.trainer.index');
+            Route::get('/performance', [TrainerReportController::class, 'performanceReport'])->name('reports.trainer.performance');
+            Route::get('/utilization', [TrainerReportController::class, 'utilizationReport'])->name('reports.trainer.utilization');
+            Route::get('/revenue', [TrainerReportController::class, 'revenueReport'])->name('reports.trainer.revenue');
+            Route::get('/performance/export', [TrainerReportController::class, 'exportPerformanceReport'])->name('reports.trainer.performance.export');
+            Route::get('/utilization/export', [TrainerReportController::class, 'exportUtilizationReport'])->name('reports.trainer.utilization.export');
+            Route::get('/revenue/export', [TrainerReportController::class, 'exportRevenueReport'])->name('reports.trainer.revenue.export');
+        });
+    });
+
+    // Dashboards
+    Route::prefix('dashboard')->group(function () {
+        Route::get('/executive', [ExecutiveDashboardController::class, 'index'])->name('dashboard.executive.index');
+        Route::get('/executive/data', [ExecutiveDashboardController::class, 'data'])->name('dashboard.executive.data');
+        Route::get('/financial', [FinancialDashboardController::class, 'index'])->name('dashboard.financial.index');
+        Route::get('/financial/data', [FinancialDashboardController::class, 'data'])->name('dashboard.financial.data');
+        Route::get('/operational', [OperationalDashboardController::class, 'index'])->name('dashboard.operational.index');
+        Route::get('/operational/data', [OperationalDashboardController::class, 'data'])->name('dashboard.operational.data');
+        Route::get('/performance', [PerformanceDashboardController::class, 'index'])->name('dashboard.performance.index');
+        Route::get('/performance/data', [PerformanceDashboardController::class, 'data'])->name('dashboard.performance.data');
     });
 
     // Accounts
