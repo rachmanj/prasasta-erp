@@ -48,7 +48,75 @@ This document describes the CURRENT WORKING STATE of the application architectur
 
 ## Project Overview
 
-[Brief description of what this system does]
+Prasasta ERP is a comprehensive enterprise resource planning system built with Laravel 12 and modern web technologies, designed for educational institutions and organizations requiring integrated course management, financial management, and asset tracking capabilities.
+
+## User Interface Architecture
+
+### Design System (Implemented)
+
+**Framework**: AdminLTE 3 with Bootstrap 4 integration
+**Theme**: Dark primary sidebar with light content areas
+**Icons**: Font Awesome 5 for consistent iconography
+**Components**: Select2BS4 for enhanced dropdowns
+
+### Form Design Patterns (Implemented)
+
+**Layout Structure**:
+
+-   Breadcrumb navigation with Dashboard → Module → Action hierarchy
+-   Page title sections with consistent header styling
+-   Back buttons for improved navigation flow
+-   Two-column layout for header fields with form-group row pattern
+
+**Card-Based Design**:
+
+-   `card-primary-outline` for main forms
+-   `card-secondary-outline` for line items sections
+-   `card-light-outline` for collapsible sections
+-   Proper card headers with icons and action buttons
+
+**Form Controls**:
+
+-   Select2BS4 integration for all dropdown fields
+-   `form-control-sm` classes for compact inputs
+-   Required field indicators with asterisks (\*)
+-   Input groups with meaningful icons
+-   Real-time total calculation with Indonesian number formatting
+
+**Table-Based Line Items**:
+
+-   Enhanced table structure with clear column headers
+-   Striped styling for better readability
+-   Automatic total calculation at bottom
+-   Right-aligned numeric fields
+-   Dynamic add/remove functionality
+
+### Navigation Structure (Implemented)
+
+**Sidebar Menu Organization**:
+
+-   **Sales Flow**: Customers → Sales Orders → Sales Invoices → Sales Receipts
+-   **Purchase Flow**: Suppliers → Purchase Orders → Goods Receipts → Purchase Invoices → Purchase Payments
+-   **Accounting**: Journals → Journal Approval → Cash Expenses → Accounts → Periods
+-   **Fixed Assets**: Asset Categories → Assets → Depreciation Runs → Asset Disposals → Asset Movements → Asset Import → Data Quality → Bulk Operations
+-   **Master Data**: Projects → Funds → Departments
+-   **Courses**: Course Categories → Courses → Course Batches → Enrollments → Trainers → Payment Plans → Installment Payments → Revenue Recognition
+-   **Dashboards**: Executive → Financial → Operational → Performance
+-   **Reports**: Comprehensive reporting section
+-   **Admin**: User management and system administration
+
+**Permission-Based Visibility**:
+
+-   Menu items shown based on user role permissions
+-   Active state management across related pages
+-   Proper route pattern matching for menu highlighting
+
+### Responsive Design (Implemented)
+
+**Breakpoints**: Bootstrap 4 responsive grid system
+**Mobile Optimization**: Touch-friendly interface elements
+**Tablet Support**: Optimized layouts for medium screens
+**Desktop Enhancement**: Full feature set with advanced interactions
 
 ## Technology Stack (Current)
 
@@ -248,6 +316,9 @@ Note: Some foreign keys were deferred to avoid migration ordering issues; can be
     -   JS: `adminlte/plugins/select2/js/select2.full.min.js`
     -   Class: `select2bs4` for Bootstrap 4 theme integration
     -   Initialization: Proper timeout handling and memory management for dynamic content
+    -   **Invoice Forms**: Enhanced sales and purchase invoice create forms with Select2BS4 for all dropdowns, table-based line items, collapsible dimensions section, and improved visual hierarchy
+        -   **Sales Invoice Create Form**: Breadcrumb navigation, two-column layout, input groups with icons, table-based line items
+        -   **Purchase Invoice Create Form**: Matching design with consistent layout patterns, form-control-sm classes, line item deletion
 -   **Form Enhancements**: Input groups with icons, responsive layouts, visual feedback indicators
 -   **Data Formatting**: Thousand separators for amounts, proper number formatting, real-time validation feedback
 

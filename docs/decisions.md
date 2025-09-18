@@ -1,3 +1,55 @@
+Decision: Comprehensive UI/UX redesign for consistent form experience across all business documents - [2025-01-27]
+
+Context:
+
+-   Purchase payment, sales receipt, purchase order, sales order, and goods receipt create pages had inconsistent layouts and poor user experience.
+-   Forms lacked modern UI components like Select2BS4 for enhanced dropdowns.
+-   No standardized layout pattern across similar form types.
+-   Missing breadcrumb navigation and back buttons for improved user flow.
+-   Sidebar menu organization didn't follow logical business process flow.
+
+Options Considered:
+
+1. Keep existing inconsistent form layouts
+    - ✅ No development effort required
+    - ❌ Poor user experience, inconsistent interface, high learning curve
+2. Redesign forms individually without standardization
+    - ✅ Quick improvements for specific forms
+    - ❌ Still inconsistent, doesn't address systemic issues
+3. Implement comprehensive redesign with consistent patterns
+    - ✅ Creates cohesive user experience, reduces learning curve
+    - ❌ More extensive development effort required
+
+Decision:
+
+-   Implement comprehensive UI/UX redesign for all business document forms.
+-   Standardize layout patterns based on successful purchase invoice create page design.
+-   Integrate Select2BS4 for enhanced dropdown experience across all forms.
+-   Reorganize sidebar menu to follow logical business process flow.
+-   Add consistent navigation elements (breadcrumbs, back buttons) for better user flow.
+
+Implementation:
+
+-   Redesigned 5 form pages: purchase payments, sales receipts, purchase orders, sales orders, goods receipts.
+-   Implemented consistent layout patterns: two-column header layout, card-based design, table-based line items.
+-   Added Select2BS4 integration with Bootstrap4 theme for all dropdown fields.
+-   Enhanced functionality: real-time total calculation, Indonesian number formatting, dynamic line item management.
+-   Added breadcrumb navigation and back buttons for improved navigation flow.
+-   Reorganized sidebar menu: Sales (Customers→Orders→Invoices→Receipts), Purchase (Suppliers→Orders→Receipts→Invoices→Payments).
+-   Enhanced permission checks and active state management for menu items.
+
+Consequences:
+
+-   All business document forms now have consistent, professional appearance.
+-   Improved user experience with modern UI components and logical navigation flow.
+-   Reduced learning curve through standardized interface patterns.
+-   Enhanced productivity with real-time calculations and improved form usability.
+-   Better mobile experience with Select2BS4 responsive design.
+
+Review Date: 2025-02-27
+
+---
+
 Decision: Route architecture and permission system enhancements for comprehensive ERP functionality - [2025-01-15]
 
 Context:

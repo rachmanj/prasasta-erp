@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Carbon\Carbon;
+use App\Models\Accounting\PurchaseInvoice;
 
 class Asset extends Model
 {
@@ -54,22 +55,22 @@ class Asset extends Model
 
     public function fund(): BelongsTo
     {
-        return $this->belongsTo(Fund::class, 'fund_id');
+        return $this->belongsTo(\App\Models\Dimensions\Fund::class, 'fund_id');
     }
 
     public function project(): BelongsTo
     {
-        return $this->belongsTo(Project::class, 'project_id');
+        return $this->belongsTo(\App\Models\Dimensions\Project::class, 'project_id');
     }
 
     public function department(): BelongsTo
     {
-        return $this->belongsTo(Department::class, 'department_id');
+        return $this->belongsTo(\App\Models\Dimensions\Department::class, 'department_id');
     }
 
     public function vendor(): BelongsTo
     {
-        return $this->belongsTo(Vendor::class, 'vendor_id');
+        return $this->belongsTo(\App\Models\Master\Vendor::class, 'vendor_id');
     }
 
     public function purchaseInvoice(): BelongsTo

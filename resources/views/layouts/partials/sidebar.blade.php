@@ -29,11 +29,12 @@
 
 
                 <!-- Sales Group -->
-                @canany(['ar.invoices.view', 'ar.receipts.view'])
+                @canany(['ar.invoices.view', 'ar.receipts.view', 'customers.view'])
                     @php
                         $salesActive =
                             request()->routeIs('sales-invoices.*') ||
                             request()->routeIs('sales-receipts.*') ||
+                            request()->routeIs('sales-orders.*') ||
                             request()->routeIs('customers.*');
                     @endphp
                     <li class="nav-item {{ $salesActive ? 'menu-is-opening menu-open' : '' }}">
@@ -54,6 +55,13 @@
                                     </a>
                                 </li>
                             @endcan
+                            <li class="nav-item">
+                                <a href="{{ route('sales-orders.index') }}"
+                                    class="nav-link {{ request()->routeIs('sales-orders.*') ? 'active' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Sales Orders</p>
+                                </a>
+                            </li>
                             @can('ar.invoices.view')
                                 <li class="nav-item">
                                     <a href="{{ route('sales-invoices.index') }}"
@@ -63,13 +71,6 @@
                                     </a>
                                 </li>
                             @endcan
-                            <li class="nav-item">
-                                <a href="{{ route('sales-orders.index') }}"
-                                    class="nav-link {{ request()->routeIs('sales-orders.*') ? 'active' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>Sales Orders</p>
-                                </a>
-                            </li>
                             @can('ar.receipts.view')
                                 <li class="nav-item">
                                     <a href="{{ route('sales-receipts.index') }}"
@@ -84,11 +85,13 @@
                 @endcanany
 
                 <!-- Purchase Group -->
-                @canany(['ap.invoices.view', 'ap.payments.view'])
+                @canany(['ap.invoices.view', 'ap.payments.view', 'vendors.view'])
                     @php
                         $purchaseActive =
                             request()->routeIs('purchase-invoices.*') ||
                             request()->routeIs('purchase-payments.*') ||
+                            request()->routeIs('purchase-orders.*') ||
+                            request()->routeIs('goods-receipts.*') ||
                             request()->routeIs('vendors.*');
                     @endphp
                     <li class="nav-item {{ $purchaseActive ? 'menu-is-opening menu-open' : '' }}">
@@ -109,15 +112,6 @@
                                     </a>
                                 </li>
                             @endcan
-                            @can('ap.invoices.view')
-                                <li class="nav-item">
-                                    <a href="{{ route('purchase-invoices.index') }}"
-                                        class="nav-link {{ request()->routeIs('purchase-invoices.*') ? 'active' : '' }}">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Purchase Invoices</p>
-                                    </a>
-                                </li>
-                            @endcan
                             <li class="nav-item">
                                 <a href="{{ route('purchase-orders.index') }}"
                                     class="nav-link {{ request()->routeIs('purchase-orders.*') ? 'active' : '' }}">
@@ -132,6 +126,15 @@
                                     <p>Goods Receipts</p>
                                 </a>
                             </li>
+                            @can('ap.invoices.view')
+                                <li class="nav-item">
+                                    <a href="{{ route('purchase-invoices.index') }}"
+                                        class="nav-link {{ request()->routeIs('purchase-invoices.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Purchase Invoices</p>
+                                    </a>
+                                </li>
+                            @endcan
                             @can('ap.payments.view')
                                 <li class="nav-item">
                                     <a href="{{ route('purchase-payments.index') }}"

@@ -53,13 +53,16 @@ class UserController extends Controller
         $this->authorize('users.create');
         $data = $request->validate([
             'name' => ['required', 'string', 'max:150'],
+            'username' => ['required', 'string', 'max:150', 'unique:users,username'],
             'email' => ['required', 'email', 'max:150', 'unique:users,email'],
             'password' => ['required', 'string', 'min:6'],
+            'password_confirmation' => ['required', 'same:password'],
             'roles' => ['array']
         ]);
 
         $user = User::create([
             'name' => $data['name'],
+            'username' => $data['username'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
         ]);
@@ -68,7 +71,7 @@ class UserController extends Controller
             $user->syncRoles($data['roles']);
         }
 
-        return redirect()->route('admin.users.index')->with('success', 'User created');
+        return redirect()->route('admin.users.index')->with('success', 'User created successfully');
     }
 
     public function edit(User $user)
@@ -85,11 +88,14 @@ class UserController extends Controller
         $this->authorize('users.update');
         $data = $request->validate([
             'name' => ['required', 'string', 'max:150'],
+            'username' => ['required', 'string', 'max:150', 'unique:users,username,' . $user->id],
             'email' => ['required', 'email', 'max:150', 'unique:users,email,' . $user->id],
             'password' => ['nullable', 'string', 'min:6'],
+            'password_confirmation' => ['nullable', 'same:password'],
             'roles' => ['array']
         ]);
         $user->name = $data['name'];
+        $user->username = $data['username'];
         $user->email = $data['email'];
         if (!empty($data['password'])) {
             $user->password = Hash::make($data['password']);
@@ -98,7 +104,7 @@ class UserController extends Controller
         if (isset($data['roles'])) {
             $user->syncRoles($data['roles']);
         }
-        return redirect()->route('admin.users.index')->with('success', 'User updated');
+        return redirect()->route('admin.users.index')->with('success', 'User updated successfully');
     }
 
     public function destroy(Request $request, User $user)
