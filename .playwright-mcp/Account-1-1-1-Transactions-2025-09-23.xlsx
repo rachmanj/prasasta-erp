@@ -1,0 +1,3 @@
+﻿"Posting Date","Create Date","Journal Number","Origin Document",Description,Debit,Credit,"Running Balance","Created By"
+23/09/2025,"23/09/2025 03:51",JNL-202509-000001,manual_journal,"Test Journal Entry - Cash Transfer",1000000.00,0,1000000,"Super Admin"
+23/09/2025,"23/09/2025 03:51",JNL-202509-000001,manual_journal,"Test Journal Entry - Cash Transfer",0,1000000.00,0,"Super Admin"

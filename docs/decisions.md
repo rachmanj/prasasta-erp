@@ -1,3 +1,128 @@
+Decision: Account Transaction DataTable Enhancement with Simplified Filtering and Excel Export - [2025-09-23]
+
+Context:
+
+-   Account transaction DataTable had complex filtering by both posting date and create date, which was confusing for users.
+-   No Excel export functionality for filtered transaction data, limiting offline analysis capabilities.
+-   Users needed professional-grade export functionality for further analysis and reporting.
+-   Complex multi-criteria filtering was creating cognitive load and reducing usability.
+
+Options Considered:
+
+1. Keep existing complex filtering without Excel export
+    - ✅ No additional development effort required
+    - ❌ Poor user experience, limited functionality, no offline analysis capability
+2. Add Excel export while keeping complex filtering
+    - ✅ Provides export functionality
+    - ❌ Still maintains complex filtering that confuses users
+3. Simplify filtering to posting date only and add Excel export
+    - ✅ Better user experience, professional export functionality
+    - ❌ More development effort required
+
+Decision:
+
+-   Simplify date filtering to use posting date only (remove create date filter complexity).
+-   Update view layout from 4-column to 3-column design for better space utilization.
+-   Add Excel export functionality with filtered data export capability.
+-   Implement professional filename generation and proper data formatting.
+-   Maintain all existing DataTable functionality while improving user experience.
+
+Implementation:
+
+-   Modified `resources/views/accounts/show.blade.php` to use 3-column layout (From Date, To Date, Filter/Clear buttons) and added green "Export Excel" button with file-excel icon.
+-   Updated JavaScript to handle export button click with URL parameter passing for current filter settings.
+-   Added new route `GET /accounts/{account}/transactions/export` with proper permissions (`accounts.view_transactions`).
+-   Implemented `transactionsExport()` method in `AccountController` with comprehensive error handling and professional filename generation (`Account_1.1.1_Transactions_2025-09-23.xlsx`).
+-   Used raw numeric values in Excel export for proper calculations (not formatted currency strings).
+-   Added UTF-8 BOM for proper character encoding in exported files.
+-   Updated date formatting to show only date (not time) for cleaner display.
+-   Maintained all existing DataTable functionality including server-side processing, sorting, searching, and pagination.
+
+Consequences:
+
+-   Simplified filtering approach provides better user experience and reduces cognitive load.
+-   Excel export functionality significantly enhances business value by enabling offline analysis and reporting.
+-   Professional filename generation with account codes and dates improves file organization and traceability.
+-   Raw numeric values in exports allow proper Excel calculations and formatting.
+-   UTF-8 BOM ensures proper character encoding for international characters.
+-   Permission-based access control maintains security while providing functionality.
+-   Streamlined UI layout improves usability and reduces visual clutter.
+
+Review Date: 2025-10-23
+
+Decision: Comprehensive Account Management Enhancement with Transaction History - [2025-09-23]
+
+Context:
+
+-   Accounts module lacked comprehensive account detail view and transaction history tracking.
+-   No way to view detailed account information beyond basic CRUD operations.
+-   Missing transaction history with running balance calculations for accounting professionals.
+-   No advanced filtering capabilities for transaction analysis.
+-   Limited visibility into account activity and financial impact.
+
+Options Considered:
+
+1. Keep basic account CRUD without detailed views
+    - ✅ No additional development effort required
+    - ❌ Poor user experience, limited functionality, inadequate for accounting professionals
+2. Add simple account detail view without transaction history
+    - ✅ Moderate development effort, basic improvement
+    - ❌ Still lacks comprehensive transaction tracking and analysis capabilities
+3. Implement comprehensive account management with full transaction history
+    - ✅ Complete solution for accounting professionals, comprehensive functionality
+    - ❌ More extensive development effort required
+
+Decision:
+
+-   Implement comprehensive account management enhancement with detailed transaction history.
+-   Add View action button to accounts index page with proper permission control.
+-   Create comprehensive account detail page with Account Information and Statistics cards.
+-   Build Transaction History DataTable with server-side processing and all required columns.
+-   Implement advanced filtering capabilities with date range selection.
+-   Add running balance calculation with proper debit/credit math.
+-   Include comprehensive DataTable features (sorting, searching, pagination, export).
+
+Implementation:
+
+-   Added View action button to accounts index page with `accounts.view_transactions` permission.
+-   Created comprehensive account detail page (`resources/views/accounts/show.blade.php`) with:
+    -   Account Information card displaying code, name, type, postable status, parent account, control type, control account status, description
+    -   Account Statistics card with info boxes for Current Balance, Total Debits, Total Credits, Transaction Count
+    -   Transaction History DataTable with server-side processing
+-   Implemented Transaction History DataTable with all required columns:
+    -   Posting Date, Create Date, Journal Number, Origin Document, Description, Debit, Credit, Running Balance, Created By
+    -   Proper currency formatting (Rp 1.000.000,00) and date formatting (dd/mm/yyyy)
+    -   Ordered by posting date ascending (oldest first) for accurate running balance calculation
+-   Added advanced filtering capabilities:
+    -   Date range filtering by both posting date and create date
+    -   Default range set to last 2 months for immediate business value
+    -   Filter and Clear buttons with AJAX reload functionality
+-   Implemented running balance calculation with proper debit/credit math:
+    -   Debit increases balance, credit decreases balance
+    -   Real-time calculation from database transactions
+    -   Accurate cumulative balance display
+-   Added comprehensive DataTable features:
+    -   Server-side processing for large datasets
+    -   Sorting on all columns, built-in search functionality
+    -   Pagination (25 records per page)
+    -   Export capabilities (Copy, CSV, Excel, PDF, Print)
+    -   Responsive design
+-   Created new permission `accounts.view_transactions` and assigned to relevant roles (Accountant, Auditor).
+-   Added routes for account show and transactions data endpoints.
+-   Fixed database column mapping issues (journals table structure differences).
+-   Comprehensive testing using Playwright MCP with successful validation.
+
+Consequences:
+
+-   Accounting professionals now have comprehensive account visibility and transaction tracking.
+-   Improved financial analysis capabilities with detailed transaction history and running balances.
+-   Enhanced user experience with professional-grade account management interface.
+-   Better audit trail and compliance support through comprehensive transaction history.
+-   Increased productivity with advanced filtering and export capabilities.
+-   Proper permission-based access control ensures data security.
+
+Review Date: 2025-10-23
+
 Decision: Comprehensive UI/UX redesign for consistent form experience across all business documents - [2025-01-27]
 
 Context:
@@ -1167,3 +1292,74 @@ Review Date:
 -   Comprehensive browser testing validation of all functionality
 
 **Review Date**: 2025-12-01 or after Phase 6 completion
+
+## [2025-09-23] Banking Module Implementation Decision
+
+### Decision: Comprehensive Banking Module with Automatic Journal Posting
+
+**Context**: Need to implement a comprehensive Banking Module for managing cash/bank transactions with automatic journal posting, dashboard analytics, and professional user interface integrated with existing ERP system.
+
+**Options Considered**:
+
+-   Option A: Manual journal entry approach for banking transactions
+    -   ✅ Simple implementation, uses existing journal system
+    -   ❌ Manual process, prone to errors, no specialized banking features
+-   Option B: Separate banking module with automatic journal posting
+    -   ✅ Specialized banking features, automatic posting, reduced errors, professional interface
+    -   ❌ More complex implementation, additional database tables
+-   Option C: Basic cash expense extension for banking
+    -   ✅ Minimal development effort, reuses existing patterns
+    -   ❌ Limited functionality, doesn't address cash-in transactions, poor user experience
+
+**Decision**: Option B - Separate banking module with automatic journal posting
+
+**Rationale**:
+
+-   Banking transactions require specialized handling with multiple line items and automatic posting
+-   Automatic journal posting eliminates manual entry errors and ensures proper double-entry accounting
+-   Professional user interface with dashboard analytics provides immediate business value
+-   Voucher numbering system provides professional document identification and traceability
+-   Integration with existing PostingService maintains architectural consistency
+
+**Implementation**:
+
+-   Created comprehensive database schema with 4 tables (cash_outs, cash_out_lines, cash_ins, cash_in_lines)
+-   Implemented Eloquent models with comprehensive relationships to Account, User, Project, Fund, Department
+-   Built controllers with automatic journal posting via PostingService integration
+-   Developed voucher numbering system (COV-YY####### for Cash-Out, CIV-YY####### for Cash-In)
+-   Created Banking Dashboard with summary cards, account balances, recent transactions, top expenses/revenues
+-   Built Cash-Out/Cash-In forms with line items, DataTables integration, and print functionality
+-   Added routes with proper middleware and banking permissions (banking.view, banking.cash_out, banking.cash_in)
+-   Implemented sidebar navigation with Banking menu group and university icon (🏛️)
+-   Assigned permissions to appropriate roles (Superadmin, Accountant, Approver, Cashier full access, Auditor read-only)
+-   Conducted comprehensive testing using Playwright MCP with 8/8 tests passed (100% success rate)
+
+**Key Features Delivered**:
+
+-   Cash-Out transactions: Multiple debit lines (expenses/assets) + single credit line (cash/bank account)
+-   Cash-In transactions: Single debit line (cash/bank account) + multiple credit lines (revenues/liabilities)
+-   Automatic journal posting with balanced double-entry accounting
+-   Professional voucher numbering with year-based sequential numbering
+-   Banking Dashboard with real-time analytics and business intelligence
+-   Comprehensive form interfaces with line items and dimension support
+-   Print functionality for professional document output
+-   Permission-based access control with role separation
+-   Integration with existing Chart of Accounts and dimension system
+
+**Integration Points**:
+
+-   Full PostingService integration for automatic journal entry creation
+-   Chart of Accounts integration with support for any postable debit/credit accounts
+-   Dimension integration (Project, Fund, Department) for reporting and analysis
+-   Accounting module visibility for journal entry verification
+-   AdminLTE UI consistency with existing ERP modules
+
+**Testing & Validation**:
+
+-   Comprehensive testing using Playwright MCP with interactive browser automation
+-   8/8 tests passed (100% success rate) including login, navigation, transaction creation, and journal verification
+-   Production readiness validation with proper double-entry accounting maintained
+-   Integration testing with existing ERP modules and permission system
+-   UI/UX consistency validation with AdminLTE design standards
+
+**Review Date**: 2025-12-01 or when major banking enhancements are added

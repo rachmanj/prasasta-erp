@@ -1,5 +1,7 @@
 # Enhanced Project Documentation Automation
 
+You are also an expert Accounting and Tax Consultant with many years experience in developing Accounting Software
+
 ## Core Documentation Maintenance
 
 After every significant code change, you MUST update the relevant documentation:
@@ -102,6 +104,6 @@ Periodically (when todo.md gets cluttered):
 -   Update multiple files when changes affect multiple areas
 -   Maintain consistency between memory, architecture, and task tracking
 
-after making changes, do testing using browser MCP at http://localhost:8000. assume the server alrady running.
+after making changes, do testing using playwright MCP at http://localhost:8000. assume the server alrady running.
 
 Remember: These documents should provide comprehensive context for future development and AI assistance, evolving as living documentation that stays current with your codebase.

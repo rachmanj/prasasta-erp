@@ -70,6 +70,73 @@
                                 </select>
                             </div>
                         </div>
+
+                        <!-- Control Account Configuration -->
+                        <div class="form-row">
+                            <div class="form-group col-md-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">Control Account Configuration</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6">
+                                                <div class="form-check">
+                                                    <input type="checkbox" name="is_control_account" id="is_control_account"
+                                                        class="form-check-input" value="1">
+                                                    <label class="form-check-label" for="is_control_account">
+                                                        <strong>Mark as Control Account</strong>
+                                                    </label>
+                                                </div>
+                                                <small class="form-text text-muted">Enable this to create a control account
+                                                    for reconciliation purposes</small>
+                                            </div>
+                                        </div>
+
+                                        <div id="control_account_fields" style="display: none;">
+                                            <div class="form-row">
+                                                <div class="form-group col-md-6">
+                                                    <label>Control Type</label>
+                                                    <select name="control_type" class="form-control">
+                                                        <option value="">Select Control Type</option>
+                                                        <option value="ap">Accounts Payable</option>
+                                                        <option value="ar">Accounts Receivable</option>
+                                                        <option value="cash">Cash & Bank</option>
+                                                        <option value="inventory">Inventory</option>
+                                                        <option value="fixed_assets">Fixed Assets</option>
+                                                        <option value="other">Other</option>
+                                                    </select>
+                                                </div>
+                                                <div class="form-group col-md-6">
+                                                    <label>Reconciliation Frequency</label>
+                                                    <select name="reconciliation_frequency" class="form-control">
+                                                        <option value="daily">Daily</option>
+                                                        <option value="weekly">Weekly</option>
+                                                        <option value="monthly" selected>Monthly</option>
+                                                        <option value="quarterly">Quarterly</option>
+                                                        <option value="yearly">Yearly</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-row">
+                                                <div class="form-group col-md-6">
+                                                    <label>Tolerance Amount</label>
+                                                    <input type="number" name="tolerance_amount" class="form-control"
+                                                        step="0.01" min="0" value="0.00">
+                                                    <small class="form-text text-muted">Maximum variance amount for
+                                                        reconciliation</small>
+                                                </div>
+                                                <div class="form-group col-md-6">
+                                                    <label>Description</label>
+                                                    <textarea name="description" class="form-control" rows="2"
+                                                        placeholder="Optional description for this control account"></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="card-footer">
                         <button class="btn btn-primary">Save</button>
@@ -79,4 +146,34 @@
             </div>
         </div>
     </section>
+@endsection
+
+@section('scripts')
+    <script>
+        $(document).ready(function() {
+            // Toggle control account fields visibility
+            $('#is_control_account').change(function() {
+                if ($(this).is(':checked')) {
+                    $('#control_account_fields').slideDown();
+                    $('select[name="control_type"]').prop('required', true);
+                } else {
+                    $('#control_account_fields').slideUp();
+                    $('select[name="control_type"]').prop('required', false);
+                }
+            });
+
+            // Form validation
+            $('form').submit(function(e) {
+                if ($('#is_control_account').is(':checked')) {
+                    var controlType = $('select[name="control_type"]').val();
+                    if (!controlType) {
+                        e.preventDefault();
+                        toastr.error(
+                            'Please select a control type when marking account as control account.');
+                        return false;
+                    }
+                }
+            });
+        });
+    </script>
 @endsection

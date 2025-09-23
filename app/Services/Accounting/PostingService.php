@@ -5,10 +5,14 @@ namespace App\Services\Accounting;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
 use App\Services\Accounting\PeriodCloseService;
+use App\Services\ControlAccounts\ControlAccountService;
 
 class PostingService
 {
-    public function __construct(private PeriodCloseService $periods) {}
+    public function __construct(
+        private PeriodCloseService $periods,
+        private ControlAccountService $controlAccountService
+    ) {}
     public function postJournal(array $payload): int
     {
         // Expected $payload keys: date, description, period_id|null, source_type, source_id, posted_by|null, lines[]
@@ -56,6 +60,11 @@ class PostingService
             }
             DB::table('journal_lines')->insert($linesInsert);
 
+            // Update control account balances after successful posting
+            if ($payload['status'] === 'posted') {
+                $this->updateControlAccountBalances($journalId);
+            }
+
             return $journalId;
         });
     }
@@ -83,6 +92,9 @@ class PostingService
                 'posted_at' => now(),
                 'updated_at' => now(),
             ]);
+
+        // Update control account balances after posting
+        $this->updateControlAccountBalances($journalId);
     }
 
     public function reverseJournal(int $journalId, ?string $date = null, ?int $postedBy = null): int
@@ -160,5 +172,26 @@ class PostingService
         if (round($sumDebit - $sumCredit, 2) !== 0.0) {
             throw new \InvalidArgumentException('Journal is not balanced');
         }
+    }
+
+    /**
+     * Update control account balances after journal posting
+     */
+    public function updateControlAccountBalances(int $journalId): void
+    {
+        try {
+            $this->controlAccountService->updateBalances($journalId);
+        } catch (\Exception $e) {
+            // Log the error but don't fail the journal posting
+            \Log::error('Failed to update control account balances for journal ' . $journalId . ': ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Validate control account posting
+     */
+    public function validateControlAccountPosting(int $accountId, float $amount): bool
+    {
+        return $this->controlAccountService->validateControlAccountPosting($accountId, $amount);
     }
 }

@@ -47,6 +47,10 @@ use App\Http\Controllers\AssetDisposalController;
 use App\Http\Controllers\AssetMovementController;
 use App\Http\Controllers\AssetImportController;
 use App\Http\Controllers\AssetDataQualityController;
+use App\Http\Controllers\Banking\BankingDashboardController;
+use App\Http\Controllers\Banking\CashOutController;
+use App\Http\Controllers\Banking\CashInController;
+use App\Http\Controllers\ControlAccountController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -267,8 +271,44 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [AccountController::class, 'index'])->name('accounts.index');
         Route::get('/create', [AccountController::class, 'create'])->name('accounts.create');
         Route::post('/', [AccountController::class, 'store'])->name('accounts.store');
+        Route::get('/{account}', [AccountController::class, 'show'])->middleware('permission:accounts.view_transactions')->name('accounts.show');
+        Route::get('/{account}/transactions', [AccountController::class, 'transactionsData'])->middleware('permission:accounts.view_transactions')->name('accounts.transactions.data');
+        Route::get('/{account}/transactions/export', [AccountController::class, 'transactionsExport'])->middleware('permission:accounts.view_transactions')->name('accounts.transactions.export');
         Route::get('/{account}/edit', [AccountController::class, 'edit'])->name('accounts.edit');
         Route::patch('/{account}', [AccountController::class, 'update'])->name('accounts.update');
+        Route::delete('/{account}', [AccountController::class, 'destroy'])->name('accounts.destroy');
+    });
+
+    // Control Accounts
+    Route::prefix('control-accounts')->middleware(['permission:control_accounts.view'])->group(function () {
+        Route::get('/', [ControlAccountController::class, 'index'])->name('control-accounts.index');
+        Route::get('/data', [ControlAccountController::class, 'data'])->name('control-accounts.data');
+        Route::get('/create', [ControlAccountController::class, 'create'])->name('control-accounts.create');
+        Route::post('/', [ControlAccountController::class, 'store'])->name('control-accounts.store');
+        Route::get('/{controlAccount}', [ControlAccountController::class, 'show'])->name('control-accounts.show');
+        Route::get('/{controlAccount}/edit', [ControlAccountController::class, 'edit'])->name('control-accounts.edit');
+        Route::patch('/{controlAccount}', [ControlAccountController::class, 'update'])->name('control-accounts.update');
+        Route::delete('/{controlAccount}', [ControlAccountController::class, 'destroy'])->name('control-accounts.destroy');
+
+        // Reconciliation
+        Route::get('/{controlAccount}/reconciliation', [ControlAccountController::class, 'reconciliation'])->name('control-accounts.reconciliation');
+        Route::post('/{controlAccount}/reconcile', [ControlAccountController::class, 'reconcile'])->name('control-accounts.reconcile');
+
+        // Subsidiary Accounts
+        // Subsidiary Accounts Management
+        Route::get('/{controlAccount}/subsidiary-accounts', [ControlAccountController::class, 'subsidiaryAccounts'])->name('control-accounts.subsidiary-accounts');
+        Route::get('/{controlAccount}/subsidiary-accounts/data', [ControlAccountController::class, 'subsidiaryAccountsData'])->name('control-accounts.subsidiary-accounts.data');
+        Route::post('/{controlAccount}/subsidiary-accounts', [ControlAccountController::class, 'storeSubsidiaryAccount'])->name('control-accounts.subsidiary-accounts.store');
+        Route::get('/{controlAccount}/subsidiary-accounts/{subsidiaryAccount}', [ControlAccountController::class, 'showSubsidiaryAccount'])->name('control-accounts.subsidiary-accounts.show');
+        Route::put('/{controlAccount}/subsidiary-accounts/{subsidiaryAccount}', [ControlAccountController::class, 'updateSubsidiaryAccount'])->name('control-accounts.subsidiary-accounts.update');
+        Route::delete('/{controlAccount}/subsidiary-accounts/{subsidiaryAccount}', [ControlAccountController::class, 'destroySubsidiaryAccount'])->name('control-accounts.subsidiary-accounts.destroy');
+
+        // Balance History
+        Route::get('/{controlAccount}/balances', [ControlAccountController::class, 'balances'])->name('control-accounts.balances');
+        Route::get('/{controlAccount}/balances/data', [ControlAccountController::class, 'balancesData'])->name('control-accounts.balances.data');
+
+        // Dashboard Data
+        Route::get('/dashboard/data', [ControlAccountController::class, 'dashboardData'])->name('control-accounts.dashboard.data');
     });
 
     // Cash Expenses
@@ -279,6 +319,32 @@ Route::middleware('auth')->group(function () {
         Route::post('/', [CashExpenseController::class, 'store'])->name('cash-expenses.store');
         Route::get('/{cashExpense}/print', [CashExpenseController::class, 'print'])->name('cash-expenses.print');
     });
+
+    // Banking Module
+    Route::prefix('banking')->middleware(['permission:banking.view'])->group(function () {
+        // Banking Dashboard
+        Route::get('/dashboard', [BankingDashboardController::class, 'index'])->name('banking.dashboard.index');
+        Route::get('/dashboard/data', [BankingDashboardController::class, 'data'])->name('banking.dashboard.data');
+
+        // Cash Out
+        Route::prefix('cash-out')->middleware(['permission:banking.cash_out'])->group(function () {
+            Route::get('/', [CashOutController::class, 'index'])->name('banking.cash-out.index');
+            Route::get('/data', [CashOutController::class, 'data'])->name('banking.cash-out.data');
+            Route::get('/create', [CashOutController::class, 'create'])->name('banking.cash-out.create');
+            Route::post('/', [CashOutController::class, 'store'])->name('banking.cash-out.store');
+            Route::get('/{cashOut}/print', [CashOutController::class, 'print'])->name('banking.cash-out.print');
+        });
+
+        // Cash In
+        Route::prefix('cash-in')->middleware(['permission:banking.cash_in'])->group(function () {
+            Route::get('/', [CashInController::class, 'index'])->name('banking.cash-in.index');
+            Route::get('/data', [CashInController::class, 'data'])->name('banking.cash-in.data');
+            Route::get('/create', [CashInController::class, 'create'])->name('banking.cash-in.create');
+            Route::post('/', [CashInController::class, 'store'])->name('banking.cash-in.store');
+            Route::get('/{cashIn}/print', [CashInController::class, 'print'])->name('banking.cash-in.print');
+        });
+    });
+
     // Admin - Users, Roles, Permissions
     Route::prefix('admin')->middleware(['permission:view-admin'])->group(function () {
         // Users

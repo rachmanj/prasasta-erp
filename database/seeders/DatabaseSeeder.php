@@ -21,7 +21,7 @@ class DatabaseSeeder extends Seeder
             SampleUsersSeeder::class,
             TermsSeeder::class,
             TrainingDataSeeder::class,
-            TrainingScenariosSeeder::class,
+            // TrainingScenariosSeeder::class,
             TrainingAssessmentSeeder::class,
         ]);
     }

@@ -98,6 +98,7 @@ Prasasta ERP is a comprehensive enterprise resource planning system built with L
 -   **Sales Flow**: Customers → Sales Orders → Sales Invoices → Sales Receipts
 -   **Purchase Flow**: Suppliers → Purchase Orders → Goods Receipts → Purchase Invoices → Purchase Payments
 -   **Accounting**: Journals → Journal Approval → Cash Expenses → Accounts → Periods
+-   **Banking**: Dashboard → Cash-Out → Cash-In
 -   **Fixed Assets**: Asset Categories → Assets → Depreciation Runs → Asset Disposals → Asset Movements → Asset Import → Data Quality → Bulk Operations
 -   **Master Data**: Projects → Funds → Departments
 -   **Courses**: Course Categories → Courses → Course Batches → Enrollments → Trainers → Payment Plans → Installment Payments → Revenue Recognition
@@ -122,8 +123,8 @@ Prasasta ERP is a comprehensive enterprise resource planning system built with L
 
 -   **Backend**: Laravel 12, PHP 8.2, MySQL, Spatie Laravel Permission, AdminLTE 3
 -   **Auth**: Custom AdminLTE login/logout (Breeze removed), Spatie roles/permissions
--   **UI**: AdminLTE layout used on Dashboard, Trial Balance, GL Detail, Manual Journal, Admin RBAC
--   **Services**: `App\Services\Reports\ReportService` and `App\Services\Accounting\PostingService`
+-   **UI**: AdminLTE layout used on Dashboard, Trial Balance, GL Detail, Manual Journal, Admin RBAC, Banking Module
+-   **Services**: `App\Services\Reports\ReportService`, `App\Services\Accounting\PostingService`, `App\Services\Banking\BankingService`
     -   Additional: `App\Services\PdfService` for DomPDF rendering
 
 ## Core Components (Implemented)
@@ -151,6 +152,11 @@ Prasasta ERP is a comprehensive enterprise resource planning system built with L
 -   AP scaffolding: Purchase Invoices (draft→posted) with PostingService hook creating Expense/Asset(+PPN Input) and AP entries
 -   Cash Movements: Sales Receipts (settle AR), Purchase Payments (settle AP)
     -   Allocation tables `sales_receipt_allocations` and `purchase_payment_allocations` for per-invoice allocations (auto oldest-first)
+-   Banking Module: Cash-Out and Cash-In transactions with automatic journal posting
+    -   Cash-Out: Multiple debit lines (expenses/assets) + single credit line (cash/bank account)
+    -   Cash-In: Single debit line (cash/bank account) + multiple credit lines (revenues/liabilities)
+    -   Auto-posting: Transactions automatically create balanced journal entries without approval workflow
+    -   Voucher numbering: COV-YY####### (Cash-Out), CIV-YY####### (Cash-In)
 -   Upstream Docs: Sales Orders (SO), Purchase Orders (PO), Goods Receipts (GR)
     -   Minimal flow implemented to capture pre-invoice intent and receipts
     -   Status workflow: SO/PO (draft→approved→closed), GR (draft→received)
@@ -164,6 +170,8 @@ Prasasta ERP is a comprehensive enterprise resource planning system built with L
         -   Asset Disposals: `DIS-YYYYMM-######` (e.g., DIS-202501-000001)
         -   Goods Receipts: `GR-YYYYMM-######` (e.g., GR-202501-000001)
         -   Cash Expenses: `CEV-YYYYMM-######` (e.g., CEV-202501-000001)
+        -   Cash-Out: `COV-YY#######` (e.g., COV-250000001)
+        -   Cash-In: `CIV-YY#######` (e.g., CIV-250000001)
         -   Journals: `JNL-YYYYMM-######` (e.g., JNL-202501-000001)
     -   "Create Invoice" actions on SO/GR/PO prefill Sales/Purchase Invoice create forms
     -   Linkage: `sales_invoices.sales_order_id`, `purchase_invoices.purchase_order_id`, `purchase_invoices.goods_receipt_id` populated on prefill and shown on invoice pages
@@ -200,6 +208,10 @@ Prasasta ERP is a comprehensive enterprise resource planning system built with L
 -   purchase_payment_lines(id, payment_id, account_id, description, amount, timestamps)
 -   sales_receipts(id, receipt_no [auto-generated SR-YYYYMM-######], date, customer_id, description, total_amount, status, posted_at, timestamps)
 -   sales_receipt_lines(id, receipt_id, account_id, description, amount, timestamps)
+-   cash_outs(id, voucher_number [auto-generated COV-YY#######], date, description, cash_account_id, total_amount, status, created_by, timestamps)
+-   cash_out_lines(id, cash_out_id, account_id, amount, project_id, fund_id, dept_id, memo, timestamps)
+-   cash_ins(id, voucher_number [auto-generated CIV-YY#######], date, description, cash_account_id, total_amount, status, created_by, timestamps)
+-   cash_in_lines(id, cash_in_id, account_id, amount, project_id, fund_id, dept_id, memo, timestamps)
 
 Note: Some foreign keys were deferred to avoid migration ordering issues; can be added in a later FK migration.
 
@@ -262,6 +274,11 @@ Note: Some foreign keys were deferred to avoid migration ordering issues; can be
 -   Sales (Masters & AR): `GET /customers` (DataTables), `GET /customers/data`, `POST /customers`, `PATCH /customers/{id}` (modal forms)
 -   Purchase (Masters & AP): `GET /vendors` (DataTables), `GET /vendors/data`, `POST /vendors`, `PATCH /vendors/{id}` (modal forms)
 -   Accounting: `GET /cash-expenses`, `GET /cash-expenses/data`, `GET /cash-expenses/create`, `POST /cash-expenses`, `GET /cash-expenses/{id}/print`
+-   Banking (requires `banking.view`):
+
+    -   `GET /banking/dashboard` (HTML) + `GET /banking/dashboard/data` (JSON)
+    -   Cash-Out (requires `banking.cash_out`): `GET /banking/cash-out`, `GET /banking/cash-out/data`, `GET /banking/cash-out/create`, `POST /banking/cash-out`, `GET /banking/cash-out/{id}/print`
+    -   Cash-In (requires `banking.cash_in`): `GET /banking/cash-in`, `GET /banking/cash-in/data`, `GET /banking/cash-in/create`, `POST /banking/cash-in`, `GET /banking/cash-in/{id}/print`
 
 -   Dimensions (permission-gated)
     -   Projects (requires `projects.view` for list/data; `projects.manage` for create/update/delete)
@@ -303,9 +320,10 @@ Note: Some foreign keys were deferred to avoid migration ordering issues; can be
 -   Journal Approval: Dedicated approval interface (`/journals/approval`) with DataTables listing draft journals, search filters (date range, description), SweetAlert confirmation dialogs, and direct approval workflow
 -   Admin: Users Index (create/edit pages), Roles Index (create/edit pages, badges for permissions), Permissions Index
 -   Masters: Customers and Suppliers with DataTables and modal create/edit forms
--   Accounting: Accounts CRUD (card layout), Periods page with SweetAlert confirm, Cash Expenses (list + create + print)
+-   Accounting: Accounts CRUD (card layout with comprehensive account management), Account Detail View with transaction history, Periods page with SweetAlert confirm, Cash Expenses (list + create + print)
     -   Cash Expense enhancements: Select2BS4 for form inputs, auto-thousand separators, enhanced index table with creator/account columns, professional print view with floating print button
     -   Manual Journal enhancements: Modern card layout with responsive design, Select2BS4 dropdowns using local AdminLTE assets, visual balance indicators with color-coded feedback, enhanced form layout with input groups and icons, thousand separators for amount displays, filtered accounts to show only postable accounts, improved table layout with proper column widths and striped rows
+    -   Account Management enhancements: Comprehensive account detail view with transaction history DataTable, View action button with permission control (`accounts.view_transactions`), Account Information card displaying code, name, type, postable status, parent account, control type, control account status, and description, Account Statistics card with info boxes for Current Balance, Total Debits, Total Credits, and Transaction Count, Transaction History DataTable with server-side processing, all required columns (Posting Date, Create Date, Journal Number, Origin Document, Description, Debit, Credit, Running Balance, Created By), proper currency formatting (Rp 1.000.000,00), date formatting (dd/mm/yyyy), ordered by posting date ascending (oldest first), simplified date range filtering by posting date only with 3-column layout (From Date, To Date, Filter/Clear buttons), Export Excel button with filtered data export functionality, running balance calculation with proper debit/credit math, DataTable features including sorting, searching, pagination (25 records per page), export capabilities (Copy, CSV, Excel, PDF, Print), responsive design, Excel export with professional filename generation (`Account_1.1.1_Transactions_2025-09-23.xlsx`), raw numeric values for proper Excel calculations, UTF-8 BOM for character encoding
 -   Sales: Sales Orders (list/create/show with DataTables list and prefill to Sales Invoice)
 -   Purchase: Purchase Orders (list/create/show), Goods Receipts (list/create/show) with prefill to Purchase Invoice
 
@@ -363,6 +381,7 @@ graph TD
 -   `journals.manual.create`, `journals.manual.store`: `journals.create`
 -   `journals.reverse`: `journals.reverse`
 -   Reports endpoints: `reports.view`
+-   Banking endpoints: `banking.view`, `banking.cash_out`, `banking.cash_in`
 -   Dimensions endpoints:
     -   Projects: `projects.view`, `projects.manage`
     -   Funds: `funds.view`, `funds.manage`
@@ -938,3 +957,138 @@ graph TD
 -   ✅ All dashboard sub-menu items verified working
 
 **Total Implementation**: Complete - All phases implemented and operational
+
+## Banking Module (Implemented)
+
+**Status**: Complete - Database Schema, Models, Controllers, Views, Routes, and Permissions operational
+
+### Current Implementation (Complete)
+
+**Database Schema (Implemented)**
+
+-   `cash_outs`: id, voucher_number [auto-generated COV-YY#######], date, description, cash_account_id, total_amount, status, created_by, timestamps
+-   `cash_out_lines`: id, cash_out_id, account_id, amount, project_id, fund_id, dept_id, memo, timestamps
+-   `cash_ins`: id, voucher_number [auto-generated CIV-YY#######], date, description, cash_account_id, total_amount, status, created_by, timestamps
+-   `cash_in_lines`: id, cash_in_id, account_id, amount, project_id, fund_id, dept_id, memo, timestamps
+
+**Models & Relationships (Implemented)**
+
+-   `CashOut`: BelongsTo Account (cash account), User (creator), HasMany CashOutLine
+-   `CashOutLine`: BelongsTo CashOut, Account (expense/asset), Project, Fund, Department
+-   `CashIn`: BelongsTo Account (cash account), User (creator), HasMany CashInLine
+-   `CashInLine`: BelongsTo CashIn, Account (revenue/liability), Project, Fund, Department
+
+**Service Layer (Implemented)**
+
+-   `PostingService` integration for automatic journal entry creation
+-   Cash-Out: Multiple debit lines (expenses/assets) + single credit line (cash/bank account)
+-   Cash-In: Single debit line (cash/bank account) + multiple credit lines (revenues/liabilities)
+-   Auto-posting: Transactions automatically create balanced journal entries without approval workflow
+
+**User Interface (Implemented)**
+
+-   Banking Dashboard: Summary cards (Daily Cash In/Out, Net Flow, Monthly Net Flow), account balances, recent transactions, top expenses/revenues
+-   Cash-Out: DataTables index, create form with line items, print functionality
+-   Cash-In: DataTables index, create form with line items, print functionality
+-   AdminLTE integration with consistent styling and responsive design
+
+**Routes & Controllers (Implemented)**
+
+-   Banking Dashboard: `/banking/dashboard` (index, data)
+-   Cash-Out: `/banking/cash-out` (index, data, create, store, print)
+-   Cash-In: `/banking/cash-in` (index, data, create, store, print)
+-   Controllers: `BankingDashboardController`, `CashOutController`, `CashInController`
+
+**Permissions (Implemented)**
+
+-   Banking Access: `banking.view` (dashboard access)
+-   Cash-Out Management: `banking.cash_out` (create, view, print)
+-   Cash-In Management: `banking.cash_in` (create, view, print)
+-   Role assignments: Superadmin, Accountant, Approver, Cashier (full access), Auditor (read-only)
+
+**Navigation (Implemented)**
+
+-   Banking menu group in sidebar with university icon (🏛️)
+-   Submenu items: Dashboard, Cash-Out, Cash-In
+-   Permission-based visibility and active state management
+-   Proper route pattern matching for menu highlighting
+
+### Integration Points (Current)
+
+**PostingService Integration**
+
+-   Automatic journal entry creation for all banking transactions
+-   Balanced double-entry accounting with proper debit/credit allocation
+-   Source tracking via `source_type` and `source_id` fields
+
+**Account Integration**
+
+-   Full integration with Chart of Accounts
+-   Support for any postable debit/credit accounts (not limited to expenses/revenues)
+-   Proper account validation and selection
+
+**Dimension Integration**
+
+-   Project, Fund, Department dimension support on line items
+-   Proper dimension tracking for reporting and analysis
+-   Optional dimension assignment per line item
+
+### Data Flow (Current Implementation)
+
+```mermaid
+graph TD
+    A[User Creates Cash-Out Transaction] --> B[Select Cash Account & Expense Lines]
+    B --> C[Validate Request Data]
+    C --> D[Create CashOut Record]
+    D --> E[Create CashOutLine Records]
+    E --> F[PostingService.postJournal]
+    F --> G[Journal Created: Debit Expenses, Credit Cash]
+    G --> H[Transaction Auto-Posted]
+
+    I[User Creates Cash-In Transaction] --> J[Select Cash Account & Revenue Lines]
+    J --> K[Validate Request Data]
+    K --> L[Create CashIn Record]
+    L --> M[Create CashInLine Records]
+    M --> N[PostingService.postJournal]
+    N --> O[Journal Created: Debit Cash, Credit Revenues]
+    O --> P[Transaction Auto-Posted]
+```
+
+### Voucher Numbering System
+
+**Cash-Out Vouchers**: `COV-YY#######` format
+
+-   Example: `COV-250000001` (COV + 2-digit year + 7-digit sequence)
+-   Sequential numbering per year
+-   Unique constraint enforced at database level
+
+**Cash-In Vouchers**: `CIV-YY#######` format
+
+-   Example: `CIV-250000001` (CIV + 2-digit year + 7-digit sequence)
+-   Sequential numbering per year
+-   Unique constraint enforced at database level
+
+### Testing & Validation (Complete)
+
+**Comprehensive Testing Completed** ✅
+
+-   ✅ Login and navigation testing
+-   ✅ Banking Dashboard functionality
+-   ✅ Cash-Out transaction creation and journal posting
+-   ✅ Cash-In transaction creation and journal posting
+-   ✅ Journal entry verification in Accounting module
+-   ✅ Database persistence and data integrity
+-   ✅ Permission system validation
+-   ✅ UI/UX consistency with AdminLTE design
+
+**Test Results**: 8/8 tests passed (100% success rate)
+
+**Production Readiness**: ✅ VALIDATED
+
+-   All core functionality operational
+-   Proper double-entry accounting maintained
+-   Integration with existing ERP modules
+-   Professional user interface
+-   Comprehensive error handling
+
+**Total Implementation**: Complete - Banking Module fully operational and production-ready

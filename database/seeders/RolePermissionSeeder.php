@@ -19,6 +19,7 @@ class RolePermissionSeeder extends Seeder
             'view-admin',
             'accounts.view',
             'accounts.manage',
+            'accounts.view_transactions',
             'journals.view',
             'journals.create',
             'journals.post',
@@ -93,6 +94,16 @@ class RolePermissionSeeder extends Seeder
             'cash_expenses.view',
             'cash_expenses.create',
             'cash_expenses.post',
+            // Banking
+            'banking.view',
+            'banking.cash_out',
+            'banking.cash_in',
+            // Control Accounts
+            'control_accounts.view',
+            'control_accounts.create',
+            'control_accounts.edit',
+            'control_accounts.delete',
+            'control_accounts.reconcile',
             // Course Management
             'courses.view',
             'courses.create',
@@ -146,6 +157,7 @@ class RolePermissionSeeder extends Seeder
             'superadmin' => $permissions,
             'accountant' => [
                 'accounts.view',
+                'accounts.view_transactions',
                 'journals.view',
                 'journals.create',
                 'projects.view',
@@ -167,6 +179,15 @@ class RolePermissionSeeder extends Seeder
                 // Cash Expenses
                 'cash_expenses.view',
                 'cash_expenses.create',
+                // Banking
+                'banking.view',
+                'banking.cash_out',
+                'banking.cash_in',
+                // Control Accounts
+                'control_accounts.view',
+                'control_accounts.create',
+                'control_accounts.edit',
+                'control_accounts.reconcile',
                 // Fixed Assets
                 'assets.view',
                 'asset_categories.view',
@@ -210,6 +231,13 @@ class RolePermissionSeeder extends Seeder
                 'ar.receipts.post',
                 'ap.payments.post',
                 'cash_expenses.post',
+                // Banking
+                'banking.view',
+                'banking.cash_out',
+                'banking.cash_in',
+                // Control Accounts
+                'control_accounts.view',
+                'control_accounts.reconcile',
                 // Fixed Assets posting
                 'assets.view',
                 'assets.depreciation.run',
@@ -277,6 +305,10 @@ class RolePermissionSeeder extends Seeder
                 'ar.receipts.create',
                 'ap.payments.view',
                 'ap.payments.create',
+                // Banking
+                'banking.view',
+                'banking.cash_out',
+                'banking.cash_in',
                 // Customer management for cash operations
                 'customers.view',
                 // Course Management (limited access for enrollment)
@@ -305,6 +337,8 @@ class RolePermissionSeeder extends Seeder
                 'ap.invoices.view',
                 'ap.payments.view',
                 'cash_expenses.view',
+                'banking.view',
+                'control_accounts.view',
                 'assets.view',
                 'asset_categories.view',
                 'assets.reports.view',
@@ -314,6 +348,7 @@ class RolePermissionSeeder extends Seeder
                 'funds.view',
                 'departments.view',
                 'accounts.view',
+                'accounts.view_transactions',
                 'periods.view',
                 // Course Management (read-only)
                 'courses.view',

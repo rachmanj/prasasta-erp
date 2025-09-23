@@ -155,7 +155,8 @@
                             request()->routeIs('journals.*') ||
                             request()->routeIs('accounts.*') ||
                             request()->routeIs('periods.*') ||
-                            request()->routeIs('cash-expenses.*');
+                            request()->routeIs('cash-expenses.*') ||
+                            request()->routeIs('control-accounts.*');
                     @endphp
                     <li class="nav-item {{ $acctActive ? 'menu-is-opening menu-open' : '' }}">
                         <a href="#" class="nav-link {{ $acctActive ? 'active' : '' }}">
@@ -198,6 +199,15 @@
                                     </a>
                                 </li>
                             @endcan
+                            @can('control_accounts.view')
+                                <li class="nav-item">
+                                    <a href="{{ route('control-accounts.index') }}"
+                                        class="nav-link {{ request()->routeIs('control-accounts.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Control Accounts</p>
+                                    </a>
+                                </li>
+                            @endcan
                             @can('periods.view')
                                 <li class="nav-item">
                                     <a href="{{ route('periods.index') }}"
@@ -210,6 +220,51 @@
                         </ul>
                     </li>
                 @endcan
+
+                <!-- Banking Group -->
+                @canany(['banking.view', 'banking.cash_out', 'banking.cash_in'])
+                    @php
+                        $bankingActive = request()->routeIs('banking.*');
+                    @endphp
+                    <li class="nav-item {{ $bankingActive ? 'menu-is-opening menu-open' : '' }}">
+                        <a href="#" class="nav-link {{ $bankingActive ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-university"></i>
+                            <p>
+                                Banking
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            @can('banking.view')
+                                <li class="nav-item">
+                                    <a href="{{ route('banking.dashboard.index') }}"
+                                        class="nav-link {{ request()->routeIs('banking.dashboard.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Dashboard</p>
+                                    </a>
+                                </li>
+                            @endcan
+                            @can('banking.cash_out')
+                                <li class="nav-item">
+                                    <a href="{{ route('banking.cash-out.index') }}"
+                                        class="nav-link {{ request()->routeIs('banking.cash-out.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Cash-Out</p>
+                                    </a>
+                                </li>
+                            @endcan
+                            @can('banking.cash_in')
+                                <li class="nav-item">
+                                    <a href="{{ route('banking.cash-in.index') }}"
+                                        class="nav-link {{ request()->routeIs('banking.cash-in.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Cash-In</p>
+                                    </a>
+                                </li>
+                            @endcan
+                        </ul>
+                    </li>
+                @endcanany
 
                 <!-- Fixed Assets Group (moved under MAIN) -->
                 @canany(['assets.view', 'asset_categories.view', 'assets.depreciation.run', 'assets.disposal.view',
