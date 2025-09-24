@@ -108,20 +108,18 @@
                                                 </div>
                                             </div>
                                             <div class="row">
-                                                @can('see-all-record-switch')
-                                                    <div class="col-md-6">
-                                                        <div class="form-group">
-                                                            <label for="show_all_records">
-                                                                <input type="checkbox" id="show_all_records"
-                                                                    data-bootstrap-switch>
-                                                                Show All Records
-                                                            </label>
-                                                            <small class="form-text text-muted">
-                                                                Toggle to view all invoices across all locations
-                                                            </small>
-                                                        </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="show_all_records">
+                                                            <input type="checkbox" id="show_all_records"
+                                                                data-bootstrap-switch>
+                                                            Show All Records
+                                                        </label>
+                                                        <small class="form-text text-muted">
+                                                            Toggle to view all invoices across all locations
+                                                        </small>
                                                     </div>
-                                                @endcan
+                                                </div>
                                                 <div class="col-md-6 text-right">
                                                     <button type="button" class="btn btn-info" id="apply_search">
                                                         <i class="fas fa-search"></i> Apply Search

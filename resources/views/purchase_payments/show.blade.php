@@ -2,6 +2,16 @@
 
 @section('title', 'Purchase Payment #' . $payment->id)
 
+@section('title_page')
+    Purchase Payment #{{ $payment->id }}
+@endsection
+
+@section('breadcrumb_title')
+    <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('purchase-payments.index') }}">Purchase Payments</a></li>
+    <li class="breadcrumb-item active">Payment #{{ $payment->id }}</li>
+@endsection
+
 @section('content')
     <section class="content">
         <div class="container-fluid">
@@ -18,7 +28,8 @@
                     @endif
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h3 class="card-title">Purchase Payment #{{ $payment->id }} ({{ strtoupper($payment->status) }})
+                            <h3 class="card-title">Purchase Payment #{{ $payment->id }}
+                                ({{ strtoupper($payment->status) }})
                             </h3>
                             <div>
                                 @can('ap.payments.post')

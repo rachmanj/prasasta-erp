@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
             TermsSeeder::class,
             TrainingDataSeeder::class,
             // TrainingScenariosSeeder::class,
-            TrainingAssessmentSeeder::class,
+            // TrainingAssessmentSeeder::class,
         ]);
     }
 }

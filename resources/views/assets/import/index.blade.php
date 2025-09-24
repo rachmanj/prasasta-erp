@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.main')
 
 @section('title', 'Asset Import')
 
@@ -310,7 +310,7 @@
                 },
                 complete: function() {
                     $('#validateBtn').prop('disabled', false).html(
-                    '<i class="fas fa-check"></i> Validate File');
+                        '<i class="fas fa-check"></i> Validate File');
                 }
             });
         }

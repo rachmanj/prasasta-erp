@@ -12,6 +12,7 @@ class PurchaseInvoiceLine extends Model
     protected $fillable = [
         'invoice_id',
         'account_id',
+        'item_id',
         'description',
         'qty',
         'unit_price',
@@ -31,5 +32,15 @@ class PurchaseInvoiceLine extends Model
     public function invoice(): BelongsTo
     {
         return $this->belongsTo(PurchaseInvoice::class, 'invoice_id');
+    }
+
+    public function item(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Item::class, 'item_id');
+    }
+
+    public function account(): BelongsTo
+    {
+        return $this->belongsTo(Account::class, 'account_id');
     }
 }

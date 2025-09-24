@@ -42,6 +42,10 @@ class CoASeeder extends Seeder
         $create('1.1.6', 'PPN Masukan (VAT Input)', 'asset', true, '1.1');
         $create('1.1.7', 'Prepaid Expenses', 'asset', true, '1.1');
         $create('1.1.8', 'Other Receivables', 'asset', true, '1.1');
+        $create('1.1.9', 'Inventory - Raw Materials', 'asset', true, '1.1');
+        $create('1.1.10', 'Inventory - Work in Progress', 'asset', true, '1.1');
+        $create('1.1.11', 'Inventory - Finished Goods', 'asset', true, '1.1');
+        $create('1.1.12', 'Inventory - Supplies & Consumables', 'asset', true, '1.1');
 
         $create('1.2', 'Non-Current Assets', 'asset', false, '1');
         $create('1.2.1', 'Fixed Assets - Equipment', 'asset', true, '1.2');
@@ -88,6 +92,8 @@ class CoASeeder extends Seeder
         $create('5.1.2', 'Training Materials & Supplies', 'expense', true, '5.1');
         $create('5.1.3', 'Student Support / Scholarships', 'expense', true, '5.1');
         $create('5.1.4', 'Program Travel & Events', 'expense', true, '5.1');
+        $create('5.1.5', 'Cost of Goods Sold', 'expense', true, '5.1');
+        $create('5.1.6', 'Inventory Adjustments', 'expense', true, '5.1');
         $create('5.2', 'Administrative Expenses', 'expense', false, '5');
         $create('5.2.1', 'Salaries & Wages', 'expense', true, '5.2');
         $create('5.2.2', 'BPJS Ketenagakerjaan/Kesehatan', 'expense', true, '5.2');

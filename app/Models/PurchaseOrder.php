@@ -16,6 +16,11 @@ class PurchaseOrder extends Model
         'status'
     ];
 
+    protected $casts = [
+        'date' => 'date',
+        'total_amount' => 'decimal:2',
+    ];
+
     public function lines(): HasMany
     {
         return $this->hasMany(PurchaseOrderLine::class, 'order_id');

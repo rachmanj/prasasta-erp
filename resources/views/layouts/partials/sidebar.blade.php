@@ -405,6 +405,64 @@
                     </li>
                 @endcanany
 
+                <!-- Inventory Group -->
+                @canany(['inventory.categories.view', 'inventory.items.view', 'inventory.stock_adjustments.view',
+                    'inventory.reports.view'])
+                    @php
+                        $inventoryActive =
+                            request()->routeIs('inventory.*') ||
+                            request()->routeIs('items.*') ||
+                            request()->routeIs('stock-adjustments.*');
+                    @endphp
+                    <li class="nav-item {{ $inventoryActive ? 'menu-is-opening menu-open' : '' }}">
+                        <a href="#" class="nav-link {{ $inventoryActive ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-boxes"></i>
+                            <p>
+                                Inventory
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            @can('inventory.categories.view')
+                                <li class="nav-item">
+                                    <a href="{{ route('inventory.categories.index') }}"
+                                        class="nav-link {{ request()->routeIs('inventory.categories.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Categories</p>
+                                    </a>
+                                </li>
+                            @endcan
+                            @can('inventory.items.view')
+                                <li class="nav-item">
+                                    <a href="{{ route('items.index') }}"
+                                        class="nav-link {{ request()->routeIs('items.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Items</p>
+                                    </a>
+                                </li>
+                            @endcan
+                            @can('inventory.stock_adjustments.view')
+                                <li class="nav-item">
+                                    <a href="{{ route('stock-adjustments.index') }}"
+                                        class="nav-link {{ request()->routeIs('stock-adjustments.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Stock Adjustments</p>
+                                    </a>
+                                </li>
+                            @endcan
+                            @can('inventory.reports.view')
+                                <li class="nav-item">
+                                    <a href="{{ route('inventory.reports.dashboard') }}"
+                                        class="nav-link {{ request()->routeIs('inventory.reports.*') ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Reports</p>
+                                    </a>
+                                </li>
+                            @endcan
+                        </ul>
+                    </li>
+                @endcanany
+
                 <!-- Courses Group (moved under MAIN) -->
                 @canany(['course_categories.view', 'courses.view', 'course_batches.view', 'enrollments.view'])
                     @php

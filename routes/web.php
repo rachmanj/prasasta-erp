@@ -47,6 +47,10 @@ use App\Http\Controllers\AssetDisposalController;
 use App\Http\Controllers\AssetMovementController;
 use App\Http\Controllers\AssetImportController;
 use App\Http\Controllers\AssetDataQualityController;
+use App\Http\Controllers\InventoryCategoryController;
+use App\Http\Controllers\ItemController;
+use App\Http\Controllers\StockAdjustmentController;
+use App\Http\Controllers\InventoryReportsController;
 use App\Http\Controllers\Banking\BankingDashboardController;
 use App\Http\Controllers\Banking\CashOutController;
 use App\Http\Controllers\Banking\CashInController;
@@ -318,6 +322,58 @@ Route::middleware('auth')->group(function () {
         Route::get('/create', [CashExpenseController::class, 'create'])->name('cash-expenses.create');
         Route::post('/', [CashExpenseController::class, 'store'])->name('cash-expenses.store');
         Route::get('/{cashExpense}/print', [CashExpenseController::class, 'print'])->name('cash-expenses.print');
+    });
+
+    // Inventory Module
+    Route::prefix('inventory')->group(function () {
+        // Inventory Categories
+        Route::prefix('categories')->group(function () {
+            Route::get('/', [InventoryCategoryController::class, 'index'])->name('inventory.categories.index');
+            Route::get('/data', [InventoryCategoryController::class, 'data'])->name('inventory.categories.data');
+            Route::post('/', [InventoryCategoryController::class, 'store'])->name('inventory.categories.store');
+            Route::get('/{id}/edit', [InventoryCategoryController::class, 'edit'])->name('inventory.categories.edit');
+            Route::put('/{id}', [InventoryCategoryController::class, 'update'])->name('inventory.categories.update');
+            Route::delete('/{id}', [InventoryCategoryController::class, 'destroy'])->name('inventory.categories.destroy');
+        });
+
+        // Items
+        Route::prefix('items')->group(function () {
+            Route::get('/', [ItemController::class, 'index'])->name('items.index');
+            Route::get('/data', [ItemController::class, 'data'])->name('items.data');
+            Route::get('/create', [ItemController::class, 'create'])->name('items.create');
+            Route::post('/', [ItemController::class, 'store'])->name('items.store');
+            Route::get('/{id}', [ItemController::class, 'show'])->name('items.show');
+            Route::get('/{id}/edit', [ItemController::class, 'edit'])->name('items.edit');
+            Route::put('/{id}', [ItemController::class, 'update'])->name('items.update');
+            Route::delete('/{id}', [ItemController::class, 'destroy'])->name('items.destroy');
+            Route::get('/search', [ItemController::class, 'search'])->name('items.search');
+        });
+
+        // Stock Adjustments
+        Route::prefix('stock-adjustments')->group(function () {
+            Route::get('/', [StockAdjustmentController::class, 'index'])->name('stock-adjustments.index');
+            Route::get('/data', [StockAdjustmentController::class, 'data'])->name('stock-adjustments.data');
+            Route::get('/create', [StockAdjustmentController::class, 'create'])->name('stock-adjustments.create');
+            Route::post('/', [StockAdjustmentController::class, 'store'])->name('stock-adjustments.store');
+            Route::get('/{id}', [StockAdjustmentController::class, 'show'])->name('stock-adjustments.show');
+            Route::post('/{id}/approve', [StockAdjustmentController::class, 'approve'])->name('stock-adjustments.approve');
+            Route::get('/search/items', [StockAdjustmentController::class, 'searchItems'])->name('stock-adjustments.search-items');
+        });
+
+        // Inventory Reports
+        Route::prefix('reports')->group(function () {
+            Route::get('/dashboard', [InventoryReportsController::class, 'dashboard'])->name('inventory.reports.dashboard');
+            Route::get('/stock-status', [InventoryReportsController::class, 'stockStatus'])->name('inventory.reports.stock-status');
+            Route::get('/stock-status/data', [InventoryReportsController::class, 'stockStatusData'])->name('inventory.reports.stock-status.data');
+            Route::get('/stock-movement', [InventoryReportsController::class, 'stockMovement'])->name('inventory.reports.stock-movement');
+            Route::get('/stock-movement/data', [InventoryReportsController::class, 'stockMovementData'])->name('inventory.reports.stock-movement.data');
+            Route::get('/inventory-valuation', [InventoryReportsController::class, 'inventoryValuation'])->name('inventory.reports.inventory-valuation');
+            Route::get('/low-stock', [InventoryReportsController::class, 'lowStock'])->name('inventory.reports.low-stock');
+            Route::get('/stock-adjustments', [InventoryReportsController::class, 'stockAdjustments'])->name('inventory.reports.stock-adjustments');
+            Route::get('/stock-adjustments/data', [InventoryReportsController::class, 'stockAdjustmentsData'])->name('inventory.reports.stock-adjustments.data');
+            Route::get('/export/stock-status', [InventoryReportsController::class, 'exportStockStatus'])->name('inventory.reports.export.stock-status');
+            Route::get('/export/stock-movement', [InventoryReportsController::class, 'exportStockMovement'])->name('inventory.reports.export.stock-movement');
+        });
     });
 
     // Banking Module
