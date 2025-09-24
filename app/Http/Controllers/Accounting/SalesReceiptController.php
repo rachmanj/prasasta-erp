@@ -29,7 +29,11 @@ class SalesReceiptController extends Controller
     {
         $customers = DB::table('customers')->orderBy('name')->get();
         $accounts = DB::table('accounts')->where('is_postable', 1)->orderBy('code')->get();
-        return view('sales_receipts.create', compact('customers', 'accounts'));
+        $items = DB::table('items')->where('is_active', 1)->orderBy('code')->get(['id', 'code', 'name', 'type']);
+        $projects = DB::table('projects')->orderBy('code')->get(['id', 'code', 'name']);
+        $funds = DB::table('funds')->orderBy('code')->get(['id', 'code', 'name']);
+        $departments = DB::table('departments')->orderBy('code')->get(['id', 'code', 'name']);
+        return view('sales_receipts.create', compact('customers', 'accounts', 'items', 'projects', 'funds', 'departments'));
     }
 
     public function store(Request $request)
@@ -42,6 +46,9 @@ class SalesReceiptController extends Controller
             'lines.*.account_id' => ['required', 'integer', 'exists:accounts,id'],
             'lines.*.description' => ['nullable', 'string', 'max:255'],
             'lines.*.amount' => ['required', 'numeric', 'min:0.01'],
+            'lines.*.project_id' => ['nullable', 'integer'],
+            'lines.*.fund_id' => ['nullable', 'integer'],
+            'lines.*.dept_id' => ['nullable', 'integer'],
         ]);
 
         return DB::transaction(function () use ($data) {
@@ -65,6 +72,9 @@ class SalesReceiptController extends Controller
                     'account_id' => $l['account_id'],
                     'description' => $l['description'] ?? null,
                     'amount' => $amount,
+                    'project_id' => $l['project_id'] ?? null,
+                    'fund_id' => $l['fund_id'] ?? null,
+                    'dept_id' => $l['dept_id'] ?? null,
                 ]);
             }
 
@@ -167,6 +177,8 @@ class SalesReceiptController extends Controller
                 'source_type' => 'sales_receipt',
                 'source_id' => $receipt->id,
                 'lines' => $lines,
+                'posted_by' => auth()->id(),
+                'status' => 'posted',
             ]);
 
             $receipt->update(['status' => 'posted', 'posted_at' => now()]);

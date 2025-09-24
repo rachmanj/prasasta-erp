@@ -11,10 +11,13 @@ class GoodsReceiptLine extends Model
         'grn_id',
         'account_id',
         'item_id',
+        'line_type',
         'description',
         'qty',
         'unit_price',
         'amount',
+        'vat_amount',
+        'wtax_amount',
         'tax_code_id'
     ];
 
@@ -22,6 +25,8 @@ class GoodsReceiptLine extends Model
         'qty' => 'decimal:4',
         'unit_price' => 'decimal:2',
         'amount' => 'decimal:2',
+        'vat_amount' => 'decimal:2',
+        'wtax_amount' => 'decimal:2',
     ];
 
     public function grn(): BelongsTo

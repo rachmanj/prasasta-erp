@@ -21,8 +21,9 @@ class PurchaseOrderController extends Controller
     {
         $vendors = DB::table('vendors')->orderBy('name')->get();
         $accounts = DB::table('accounts')->where('is_postable', 1)->orderBy('code')->get();
+        $items = DB::table('items')->where('is_active', 1)->orderBy('code')->get(['id', 'code', 'name', 'type']);
         $taxCodes = DB::table('tax_codes')->orderBy('code')->get();
-        return view('purchase_orders.create', compact('vendors', 'accounts', 'taxCodes'));
+        return view('purchase_orders.create', compact('vendors', 'accounts', 'items', 'taxCodes'));
     }
 
     public function store(Request $request)
@@ -32,11 +33,16 @@ class PurchaseOrderController extends Controller
             'vendor_id' => ['required', 'integer', 'exists:vendors,id'],
             'description' => ['nullable', 'string', 'max:255'],
             'lines' => ['required', 'array', 'min:1'],
-            'lines.*.account_id' => ['required', 'integer', 'exists:accounts,id'],
+            'lines.*.line_type' => ['required', 'in:item,service'],
+            'lines.*.item_account_id' => ['required', 'integer'],
             'lines.*.description' => ['nullable', 'string', 'max:255'],
             'lines.*.qty' => ['required', 'numeric', 'min:0.01'],
             'lines.*.unit_price' => ['required', 'numeric', 'min:0'],
-            'lines.*.tax_code_id' => ['nullable', 'integer', 'exists:tax_codes,id'],
+            'lines.*.vat_rate' => ['nullable', 'numeric', 'in:0,11'],
+            'lines.*.wtax_rate' => ['nullable', 'numeric', 'in:0,2'],
+            'lines.*.vat_amount' => ['required', 'numeric', 'min:0'],
+            'lines.*.wtax_amount' => ['required', 'numeric', 'min:0'],
+            'lines.*.amount' => ['required', 'numeric', 'min:0'],
         ]);
 
         return DB::transaction(function () use ($data) {
@@ -52,16 +58,34 @@ class PurchaseOrderController extends Controller
             $po->update(['order_no' => sprintf('PO-%s-%06d', $ym, $po->id)]);
             $total = 0;
             foreach ($data['lines'] as $l) {
-                $amount = (float)$l['qty'] * (float)$l['unit_price'];
+                $lineType = $l['line_type'];
+                $itemAccountId = $l['item_account_id'];
+                $itemId = null;
+                $accountId = null;
+
+                // Determine if it's an item or account based on line type
+                if ($lineType === 'item') {
+                    $itemId = $itemAccountId;
+                    // For items, we need to get the default inventory account
+                    $accountId = DB::table('items')->where('id', $itemId)->value('inventory_account_id') ?? 1; // Default to first account
+                } else {
+                    $accountId = $itemAccountId;
+                }
+
+                $amount = (float)$l['amount'];
                 $total += $amount;
+
                 PurchaseOrderLine::create([
                     'order_id' => $po->id,
-                    'account_id' => $l['account_id'],
+                    'line_type' => $lineType,
+                    'item_id' => $itemId,
+                    'account_id' => $accountId,
                     'description' => $l['description'] ?? null,
                     'qty' => (float)$l['qty'],
                     'unit_price' => (float)$l['unit_price'],
                     'amount' => $amount,
-                    'tax_code_id' => $l['tax_code_id'] ?? null,
+                    'vat_amount' => (float)($l['vat_amount'] ?? 0),
+                    'wtax_amount' => (float)($l['wtax_amount'] ?? 0),
                 ]);
             }
             $po->update(['total_amount' => $total]);
@@ -101,6 +125,9 @@ class PurchaseOrderController extends Controller
         $accounts = DB::table('accounts')->where('is_postable', 1)->orderBy('code')->get();
         $vendors = DB::table('vendors')->orderBy('name')->get();
         $taxCodes = DB::table('tax_codes')->orderBy('code')->get();
+        $projects = DB::table('projects')->orderBy('code')->get(['id', 'code', 'name']);
+        $funds = DB::table('funds')->orderBy('code')->get(['id', 'code', 'name']);
+        $departments = DB::table('departments')->orderBy('code')->get(['id', 'code', 'name']);
         $prefill = [
             'date' => now()->toDateString(),
             'vendor_id' => $order->vendor_id,
@@ -115,7 +142,7 @@ class PurchaseOrderController extends Controller
                 ];
             })->toArray(),
         ];
-        return view('purchase_invoices.create', compact('accounts', 'vendors', 'taxCodes') + ['prefill' => $prefill, 'purchase_order_id' => $order->id]);
+        return view('purchase_invoices.create', compact('accounts', 'vendors', 'taxCodes', 'projects', 'funds', 'departments') + ['prefill' => $prefill, 'purchase_order_id' => $order->id]);
     }
 
     public function createAssets(int $id)

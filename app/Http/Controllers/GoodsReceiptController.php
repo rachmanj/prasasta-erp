@@ -19,9 +19,10 @@ class GoodsReceiptController extends Controller
     {
         $vendors = DB::table('vendors')->orderBy('name')->get();
         $accounts = DB::table('accounts')->where('is_postable', 1)->orderBy('code')->get();
+        $items = DB::table('items')->where('is_active', 1)->orderBy('code')->get(['id', 'code', 'name', 'type']);
         $taxCodes = DB::table('tax_codes')->orderBy('code')->get();
         $purchaseOrders = DB::table('purchase_orders')->orderByDesc('id')->limit(50)->get(['id', 'order_no']);
-        return view('goods_receipts.create', compact('vendors', 'accounts', 'taxCodes', 'purchaseOrders'));
+        return view('goods_receipts.create', compact('vendors', 'accounts', 'items', 'taxCodes', 'purchaseOrders'));
     }
 
     public function store(Request $request)
@@ -32,11 +33,16 @@ class GoodsReceiptController extends Controller
             'purchase_order_id' => ['nullable', 'integer', 'exists:purchase_orders,id'],
             'description' => ['nullable', 'string', 'max:255'],
             'lines' => ['required', 'array', 'min:1'],
-            'lines.*.account_id' => ['required', 'integer', 'exists:accounts,id'],
+            'lines.*.line_type' => ['required', 'in:item,service'],
+            'lines.*.item_account_id' => ['required', 'integer'],
             'lines.*.description' => ['nullable', 'string', 'max:255'],
             'lines.*.qty' => ['required', 'numeric', 'min:0.01'],
             'lines.*.unit_price' => ['required', 'numeric', 'min:0'],
-            'lines.*.tax_code_id' => ['nullable', 'integer', 'exists:tax_codes,id'],
+            'lines.*.vat_rate' => ['nullable', 'numeric', 'in:0,11'],
+            'lines.*.wtax_rate' => ['nullable', 'numeric', 'in:0,2'],
+            'lines.*.vat_amount' => ['required', 'numeric', 'min:0'],
+            'lines.*.wtax_amount' => ['required', 'numeric', 'min:0'],
+            'lines.*.amount' => ['required', 'numeric', 'min:0'],
         ]);
 
         return DB::transaction(function () use ($data) {
@@ -53,16 +59,34 @@ class GoodsReceiptController extends Controller
             $grn->update(['grn_no' => sprintf('GR-%s-%06d', $ym, $grn->id)]);
             $total = 0;
             foreach ($data['lines'] as $l) {
-                $amount = (float)$l['qty'] * (float)$l['unit_price'];
+                $lineType = $l['line_type'];
+                $itemAccountId = $l['item_account_id'];
+                $itemId = null;
+                $accountId = null;
+
+                // Determine if it's an item or account based on line type
+                if ($lineType === 'item') {
+                    $itemId = $itemAccountId;
+                    // For items, we need to get the default inventory account
+                    $accountId = DB::table('items')->where('id', $itemId)->value('inventory_account_id') ?? 1; // Default to first account
+                } else {
+                    $accountId = $itemAccountId;
+                }
+
+                $amount = (float)$l['amount'];
                 $total += $amount;
+
                 GoodsReceiptLine::create([
                     'grn_id' => $grn->id,
-                    'account_id' => $l['account_id'],
+                    'line_type' => $lineType,
+                    'item_id' => $itemId,
+                    'account_id' => $accountId,
                     'description' => $l['description'] ?? null,
                     'qty' => (float)$l['qty'],
                     'unit_price' => (float)$l['unit_price'],
                     'amount' => $amount,
-                    'tax_code_id' => $l['tax_code_id'] ?? null,
+                    'vat_amount' => (float)($l['vat_amount'] ?? 0),
+                    'wtax_amount' => (float)($l['wtax_amount'] ?? 0),
                 ]);
             }
             $grn->update(['total_amount' => $total]);
@@ -98,11 +122,14 @@ class GoodsReceiptController extends Controller
             'description' => 'From GRN ' . ($grn->grn_no ?: ('#' . $grn->id)),
             'lines' => $grn->lines->map(function ($l) {
                 return [
-                    'account_id' => (int)$l->account_id,
+                    'line_type' => $l->line_type,
+                    'item_account_id' => $l->line_type === 'item' ? $l->item_id : $l->account_id,
                     'description' => $l->description,
                     'qty' => (float)$l->qty,
                     'unit_price' => (float)$l->unit_price,
-                    'tax_code_id' => $l->tax_code_id,
+                    'vat_amount' => (float)$l->vat_amount,
+                    'wtax_amount' => (float)$l->wtax_amount,
+                    'amount' => (float)$l->amount,
                 ];
             })->toArray(),
         ];

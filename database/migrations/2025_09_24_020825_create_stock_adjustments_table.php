@@ -21,7 +21,14 @@ return new class extends Migration
             $table->foreignId('created_by')->constrained('users')->onDelete('restrict');
             $table->foreignId('approved_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamp('approved_at')->nullable();
+            $table->unsignedBigInteger('project_id')->nullable()->after('approved_at');
+            $table->unsignedBigInteger('fund_id')->nullable()->after('project_id');
+            $table->unsignedBigInteger('dept_id')->nullable()->after('fund_id');
             $table->timestamps();
+
+            $table->foreign('project_id')->references('id')->on('projects')->onDelete('set null');
+            $table->foreign('fund_id')->references('id')->on('funds')->onDelete('set null');
+            $table->foreign('dept_id')->references('id')->on('departments')->onDelete('set null');
         });
     }
 

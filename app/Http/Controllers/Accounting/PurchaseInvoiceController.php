@@ -29,11 +29,12 @@ class PurchaseInvoiceController extends Controller
     {
         $accounts = DB::table('accounts')->where('is_postable', 1)->orderBy('code')->get();
         $vendors = DB::table('vendors')->orderBy('name')->get();
+        $items = DB::table('items')->where('is_active', 1)->orderBy('code')->get(['id', 'code', 'name', 'type']);
         $taxCodes = DB::table('tax_codes')->orderBy('code')->get();
         $projects = DB::table('projects')->orderBy('code')->get(['id', 'code', 'name']);
         $funds = DB::table('funds')->orderBy('code')->get(['id', 'code', 'name']);
         $departments = DB::table('departments')->orderBy('code')->get(['id', 'code', 'name']);
-        return view('purchase_invoices.create', compact('accounts', 'vendors', 'taxCodes', 'projects', 'funds', 'departments'));
+        return view('purchase_invoices.create', compact('accounts', 'vendors', 'items', 'taxCodes', 'projects', 'funds', 'departments'));
     }
 
     public function store(Request $request)
@@ -43,11 +44,16 @@ class PurchaseInvoiceController extends Controller
             'vendor_id' => ['required', 'integer', 'exists:vendors,id'],
             'description' => ['nullable', 'string', 'max:255'],
             'lines' => ['required', 'array', 'min:1'],
-            'lines.*.account_id' => ['required', 'integer', 'exists:accounts,id'],
+            'lines.*.line_type' => ['required', 'in:item,service'],
+            'lines.*.item_account_id' => ['required', 'integer'],
             'lines.*.description' => ['nullable', 'string', 'max:255'],
             'lines.*.qty' => ['required', 'numeric', 'min:0.01'],
             'lines.*.unit_price' => ['required', 'numeric', 'min:0'],
-            'lines.*.tax_code_id' => ['nullable', 'integer', 'exists:tax_codes,id'],
+            'lines.*.vat_rate' => ['nullable', 'numeric', 'in:0,11'],
+            'lines.*.wtax_rate' => ['nullable', 'numeric', 'in:0,2'],
+            'lines.*.vat_amount' => ['required', 'numeric', 'min:0'],
+            'lines.*.wtax_amount' => ['required', 'numeric', 'min:0'],
+            'lines.*.amount' => ['required', 'numeric', 'min:0'],
             'lines.*.project_id' => ['nullable', 'integer'],
             'lines.*.fund_id' => ['nullable', 'integer'],
             'lines.*.dept_id' => ['nullable', 'integer'],
@@ -70,16 +76,34 @@ class PurchaseInvoiceController extends Controller
 
             $total = 0;
             foreach ($data['lines'] as $l) {
-                $amount = (float) $l['qty'] * (float) $l['unit_price'];
+                $lineType = $l['line_type'];
+                $itemAccountId = $l['item_account_id'];
+                $itemId = null;
+                $accountId = null;
+
+                // Determine if it's an item or account based on line type
+                if ($lineType === 'item') {
+                    $itemId = $itemAccountId;
+                    // For items, we need to get the default inventory account
+                    $accountId = DB::table('items')->where('id', $itemId)->value('inventory_account_id') ?? 1; // Default to first account
+                } else {
+                    $accountId = $itemAccountId;
+                }
+
+                $amount = (float)$l['amount'];
                 $total += $amount;
+
                 PurchaseInvoiceLine::create([
                     'invoice_id' => $invoice->id,
-                    'account_id' => $l['account_id'],
+                    'line_type' => $lineType,
+                    'item_id' => $itemId,
+                    'account_id' => $accountId,
                     'description' => $l['description'] ?? null,
-                    'qty' => (float) $l['qty'],
-                    'unit_price' => (float) $l['unit_price'],
+                    'qty' => (float)$l['qty'],
+                    'unit_price' => (float)$l['unit_price'],
                     'amount' => $amount,
-                    'tax_code_id' => $l['tax_code_id'] ?? null,
+                    'vat_amount' => (float)($l['vat_amount'] ?? 0),
+                    'wtax_amount' => (float)($l['wtax_amount'] ?? 0),
                     'project_id' => $l['project_id'] ?? null,
                     'fund_id' => $l['fund_id'] ?? null,
                     'dept_id' => $l['dept_id'] ?? null,
@@ -115,18 +139,13 @@ class PurchaseInvoiceController extends Controller
         $lines = [];
         foreach ($invoice->lines as $l) {
             $expenseTotal += (float) $l->amount;
-            if (!empty($l->tax_code_id)) {
-                $tax = DB::table('tax_codes')->where('id', $l->tax_code_id)->first();
-                if ($tax) {
-                    $rate = (float) $tax->rate;
-                    if (str_contains(strtolower((string)$tax->name), 'ppn') || strtolower((string)$tax->type) === 'ppn_input') {
-                        $ppnTotal += round($l->amount * $rate, 2);
-                    }
-                    if (strtolower((string)$tax->type) === 'withholding') {
-                        $withholdingTotal += round($l->amount * $rate, 2);
-                    }
-                }
-            }
+
+            // Use VAT amount from line instead of calculating from tax codes
+            $ppnTotal += (float) $l->vat_amount;
+
+            // Use WTax amount from line instead of calculating from tax codes
+            $withholdingTotal += (float) $l->wtax_amount;
+
             $lines[] = [
                 'account_id' => (int) $l->account_id,
                 'debit' => (float) $l->amount,
@@ -182,6 +201,8 @@ class PurchaseInvoiceController extends Controller
                 'source_type' => 'purchase_invoice',
                 'source_id' => $invoice->id,
                 'lines' => $lines,
+                'posted_by' => auth()->id(),
+                'status' => 'posted',
             ]);
 
             $invoice->update(['status' => 'posted', 'posted_at' => now()]);

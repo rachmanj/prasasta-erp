@@ -29,7 +29,11 @@ class PurchasePaymentController extends Controller
     {
         $vendors = DB::table('vendors')->orderBy('name')->get();
         $accounts = DB::table('accounts')->where('is_postable', 1)->orderBy('code')->get();
-        return view('purchase_payments.create', compact('vendors', 'accounts'));
+        $items = DB::table('items')->where('is_active', 1)->orderBy('code')->get(['id', 'code', 'name', 'type']);
+        $projects = DB::table('projects')->orderBy('code')->get(['id', 'code', 'name']);
+        $funds = DB::table('funds')->orderBy('code')->get(['id', 'code', 'name']);
+        $departments = DB::table('departments')->orderBy('code')->get(['id', 'code', 'name']);
+        return view('purchase_payments.create', compact('vendors', 'accounts', 'items', 'projects', 'funds', 'departments'));
     }
 
     public function store(Request $request)
@@ -42,6 +46,9 @@ class PurchasePaymentController extends Controller
             'lines.*.account_id' => ['required', 'integer', 'exists:accounts,id'],
             'lines.*.description' => ['nullable', 'string', 'max:255'],
             'lines.*.amount' => ['required', 'numeric', 'min:0.01'],
+            'lines.*.project_id' => ['nullable', 'integer'],
+            'lines.*.fund_id' => ['nullable', 'integer'],
+            'lines.*.dept_id' => ['nullable', 'integer'],
         ]);
 
         return DB::transaction(function () use ($data) {
@@ -66,6 +73,9 @@ class PurchasePaymentController extends Controller
                     'account_id' => $l['account_id'],
                     'description' => $l['description'] ?? null,
                     'amount' => $amount,
+                    'project_id' => $l['project_id'] ?? null,
+                    'fund_id' => $l['fund_id'] ?? null,
+                    'dept_id' => $l['dept_id'] ?? null,
                 ]);
             }
 
@@ -168,6 +178,8 @@ class PurchasePaymentController extends Controller
                 'source_type' => 'purchase_payment',
                 'source_id' => $payment->id,
                 'lines' => $lines,
+                'posted_by' => auth()->id(),
+                'status' => 'posted',
             ]);
 
             $payment->update(['status' => 'posted', 'posted_at' => now()]);

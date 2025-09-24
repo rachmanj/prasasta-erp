@@ -104,11 +104,14 @@
                                             <table class="table table-sm table-striped mb-0">
                                                 <thead>
                                                     <tr>
-                                                        <th style="width: 40%">Bank/Cash Account <span
+                                                        <th style="width: 30%">Bank/Cash Account <span
                                                                 class="text-danger">*</span></th>
-                                                        <th style="width: 40%">Description</th>
+                                                        <th style="width: 30%">Description</th>
                                                         <th style="width: 15%">Amount <span class="text-danger">*</span>
                                                         </th>
+                                                        <th style="width: 15%">Project</th>
+                                                        <th style="width: 15%">Fund</th>
+                                                        <th style="width: 15%">Department</th>
                                                         <th style="width: 5%">Actions</th>
                                                     </tr>
                                                 </thead>
@@ -134,8 +137,39 @@
                                                                 class="form-control form-control-sm text-right amount-input"
                                                                 value="0">
                                                         </td>
+                                                        <td>
+                                                            <select name="lines[0][project_id]"
+                                                                class="form-control form-control-sm select2bs4">
+                                                                <option value="">-- none --</option>
+                                                                @foreach ($projects as $p)
+                                                                    <option value="{{ $p->id }}">
+                                                                        {{ $p->code }} - {{ $p->name }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        </td>
+                                                        <td>
+                                                            <select name="lines[0][fund_id]"
+                                                                class="form-control form-control-sm select2bs4">
+                                                                <option value="">-- none --</option>
+                                                                @foreach ($funds as $f)
+                                                                    <option value="{{ $f->id }}">
+                                                                        {{ $f->code }} - {{ $f->name }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        </td>
+                                                        <td>
+                                                            <select name="lines[0][dept_id]"
+                                                                class="form-control form-control-sm select2bs4">
+                                                                <option value="">-- none --</option>
+                                                                @foreach ($departments as $d)
+                                                                    <option value="{{ $d->id }}">
+                                                                        {{ $d->code }} - {{ $d->name }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        </td>
                                                         <td class="text-center">
-                                                            <button type="button" class="btn btn-xs btn-default" disabled>
+                                                            <button type="button" class="btn btn-xs btn-default"
+                                                                disabled>
                                                                 <i class="fas fa-trash-alt"></i>
                                                             </button>
                                                         </td>
@@ -145,7 +179,7 @@
                                                     <tr>
                                                         <th colspan="2" class="text-right">Total:</th>
                                                         <th class="text-right" id="total-amount">0.00</th>
-                                                        <th></th>
+                                                        <th colspan="4"></th>
                                                     </tr>
                                                 </tfoot>
                                             </table>
@@ -253,6 +287,24 @@
                 <td>
                     <input type="number" step="0.01" min="0.01" name="lines[${idx}][amount]" 
                         class="form-control form-control-sm text-right amount-input" value="0">
+                </td>
+                <td>
+                    <select name="lines[${idx}][project_id]" class="form-control form-control-sm select2bs4">
+                        <option value="">-- none --</option>
+                        ${@json($projects).map(p => `<option value="${p.id}">${p.code} - ${p.name}</option>`).join('')}
+                    </select>
+                </td>
+                <td>
+                    <select name="lines[${idx}][fund_id]" class="form-control form-control-sm select2bs4">
+                        <option value="">-- none --</option>
+                        ${@json($funds).map(f => `<option value="${f.id}">${f.code} - ${f.name}</option>`).join('')}
+                    </select>
+                </td>
+                <td>
+                    <select name="lines[${idx}][dept_id]" class="form-control form-control-sm select2bs4">
+                        <option value="">-- none --</option>
+                        ${@json($departments).map(d => `<option value="${d.id}">${d.code} - ${d.name}</option>`).join('')}
+                    </select>
                 </td>
                 <td class="text-center">
                     <button type="button" class="btn btn-xs btn-danger" onclick="removeLine(${idx})">

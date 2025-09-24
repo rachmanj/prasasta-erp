@@ -13,10 +13,13 @@ class SalesInvoiceLine extends Model
         'invoice_id',
         'account_id',
         'item_id',
+        'line_type',
         'description',
         'qty',
         'unit_price',
         'amount',
+        'vat_amount',
+        'wtax_amount',
         'tax_code_id',
         'project_id',
         'fund_id',
@@ -27,6 +30,8 @@ class SalesInvoiceLine extends Model
         'qty' => 'float',
         'unit_price' => 'float',
         'amount' => 'float',
+        'vat_amount' => 'float',
+        'wtax_amount' => 'float',
     ];
 
     public function invoice(): BelongsTo

@@ -152,6 +152,66 @@
                                     </div>
                                 </div>
 
+                                <div class="card card-light card-outline mt-3 mb-2">
+                                    <div class="card-header py-2">
+                                        <h3 class="card-title">
+                                            <i class="fas fa-tags mr-1"></i>
+                                            Dimensions (Optional)
+                                        </h3>
+                                        <button type="button" class="btn btn-xs btn-tool float-right"
+                                            data-card-widget="collapse">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                    <div class="card-body p-0" style="display: none;">
+                                        <div class="table-responsive">
+                                            <table class="table table-sm mb-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="width: 33%">Project</th>
+                                                        <th style="width: 33%">Fund</th>
+                                                        <th style="width: 34%">Department</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="dimensions-tbody">
+                                                    <tr>
+                                                        <td>
+                                                            <select name="lines[0][project_id]"
+                                                                class="form-control form-control-sm select2bs4">
+                                                                <option value="">-- none --</option>
+                                                                @foreach ($projects as $p)
+                                                                    <option value="{{ $p->id }}">
+                                                                        {{ $p->code }} - {{ $p->name }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        </td>
+                                                        <td>
+                                                            <select name="lines[0][fund_id]"
+                                                                class="form-control form-control-sm select2bs4">
+                                                                <option value="">-- none --</option>
+                                                                @foreach ($funds as $f)
+                                                                    <option value="{{ $f->id }}">
+                                                                        {{ $f->code }} - {{ $f->name }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        </td>
+                                                        <td>
+                                                            <select name="lines[0][dept_id]"
+                                                                class="form-control form-control-sm select2bs4">
+                                                                <option value="">-- none --</option>
+                                                                @foreach ($departments as $d)
+                                                                    <option value="{{ $d->id }}">
+                                                                        {{ $d->code }} - {{ $d->name }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="card card-secondary card-outline mt-3 mb-2">
                                     <div class="card-header py-2">
                                         <h3 class="card-title">
@@ -269,12 +329,52 @@
                 allowClear: true
             });
 
+            // Add dimensions row
+            addDimensionRow(idx);
+
             idx++;
             updateTotalAmount();
         }
 
+        function addDimensionRow(lineIdx) {
+            const dimensionsTable = document.getElementById('dimensions-tbody');
+            const tr = document.createElement('tr');
+            tr.id = 'dim-' + lineIdx;
+
+            tr.innerHTML = `
+                <td>
+                    <select name="lines[${lineIdx}][project_id]" class="form-control form-control-sm select2bs4">
+                        <option value="">-- none --</option>
+                        ${@json($projects).map(p => `<option value="${p.id}">${p.code} - ${p.name}</option>`).join('')}
+                    </select>
+                </td>
+                <td>
+                    <select name="lines[${lineIdx}][fund_id]" class="form-control form-control-sm select2bs4">
+                        <option value="">-- none --</option>
+                        ${@json($funds).map(f => `<option value="${f.id}">${f.code} - ${f.name}</option>`).join('')}
+                    </select>
+                </td>
+                <td>
+                    <select name="lines[${lineIdx}][dept_id]" class="form-control form-control-sm select2bs4">
+                        <option value="">-- none --</option>
+                        ${@json($departments).map(d => `<option value="${d.id}">${d.code} - ${d.name}</option>`).join('')}
+                    </select>
+                </td>
+            `;
+
+            dimensionsTable.appendChild(tr);
+
+            // Initialize Select2BS4 for the newly added select elements
+            $(tr).find('.select2bs4').select2({
+                theme: 'bootstrap4',
+                placeholder: 'Select an option',
+                allowClear: true
+            });
+        }
+
         function removeLine(lineIdx) {
             document.getElementById('line-' + lineIdx).remove();
+            document.getElementById('dim-' + lineIdx).remove();
             updateTotalAmount();
         }
 

@@ -1,5 +1,5 @@
 Purpose: Technical reference for understanding system design and development patterns
-Last Updated: 2025-01-27
+Last Updated: 2025-09-24
 
 ## Architecture Documentation Guidelines
 
@@ -179,15 +179,17 @@ Prasasta ERP is a comprehensive enterprise resource planning system built with L
 
 ## Database Schema (Current Tables)
 
--   accounts(id, code, name, type, is_postable, parent_id)
--   journals(id, journal_no, date, description, period_id, source_type, source_id, posted_by, posted_at, timestamps)
+**Migration Consolidation Status**: All modify migrations have been consolidated into their respective create table migrations for cleaner database setup and reduced complexity.
+
+-   accounts(id, code, name, type, control_type, is_control_account, description, reconciliation_frequency, tolerance_amount, is_postable, parent_id)
+-   journals(id, journal_no, date, description, status [draft/posted/reversed], period_id, source_type, source_id, posted_by, posted_at, timestamps)
 -   journal_lines(id, journal_id, account_id, debit, credit, project_id, fund_id, dept_id, memo)
 -   periods(id, month, year, is_closed, closed_at)
 -   projects(id, code, name, start_date, end_date, fund_id, budget_total, status)
 -   funds(id, code, name, is_restricted)
 -   departments(id, code, name)
 -   tax_codes(id, code, name, type, rate)
--   customers(id, code, name, npwp, address, phone, email)
+-   customers(id, code, name, npwp, address, phone, email, student_id, emergency_contact_name, emergency_contact_phone, student_status, enrollment_count, total_paid)
 -   vendors(id, code, name, npwp, address, phone, email)
 -   bank_accounts(id, code, name, bank_name, account_number, currency, is_restricted)
 -   bank_transactions(id, bank_account_id, date, description, amount, type, source_type, source_id)
@@ -195,25 +197,27 @@ Prasasta ERP is a comprehensive enterprise resource planning system built with L
 -   purchase_payment_allocations(id, payment_id, invoice_id, amount, timestamps)
 -   cash_expenses(id, voucher_number [auto-generated CEV-YYYYMM-######], date, description, account_id, amount, status, created_by, timestamps)
 -   purchase_orders(id, order_no [auto-generated PO-YYYYMM-######], date, vendor_id, description, total_amount, status, timestamps)
--   purchase_order_lines(id, order_id, account_id, description, qty, unit_price, amount, tax_code_id, timestamps)
+-   purchase_order_lines(id, order_id, account_id, item_id, description, qty, unit_price, amount, vat_amount, wtax_amount, tax_code_id, timestamps)
 -   sales_orders(id, order_no [auto-generated SO-YYYYMM-######], date, customer_id, description, total_amount, status, timestamps)
--   sales_order_lines(id, order_id, account_id, description, qty, unit_price, amount, tax_code_id, timestamps)
+-   sales_order_lines(id, order_id, account_id, item_id, line_type [item/service], description, qty, unit_price, amount, vat_amount, wtax_amount, tax_code_id, timestamps)
 -   goods_receipts(id, grn_no [auto-generated GR-YYYYMM-######], date, vendor_id, purchase_order_id, description, total_amount, status, timestamps)
--   goods_receipt_lines(id, grn_id, account_id, description, qty, unit_price, amount, tax_code_id, timestamps)
+-   goods_receipt_lines(id, grn_id, account_id, item_id, line_type [item/service], description, qty, unit_price, amount, vat_amount, wtax_amount, tax_code_id, timestamps)
 -   purchase_invoices(id, invoice_no [auto-generated PINV-YYYYMM-######], date, due_date, terms_days, vendor_id, purchase_order_id, goods_receipt_id, description, total_amount, status, posted_at, timestamps)
--   purchase_invoice_lines(id, invoice_id, account_id, description, qty, unit_price, amount, tax_code_id, project_id, fund_id, dept_id, timestamps)
+-   purchase_invoice_lines(id, invoice_id, account_id, item_id, line_type [item/service], description, qty, unit_price, amount, vat_amount, wtax_amount, tax_code_id, project_id, fund_id, dept_id, timestamps)
 -   sales_invoices(id, invoice_no [auto-generated SINV-YYYYMM-######], date, due_date, terms_days, customer_id, sales_order_id, description, total_amount, status, posted_at, timestamps)
--   sales_invoice_lines(id, invoice_id, account_id, description, qty, unit_price, amount, tax_code_id, project_id, fund_id, dept_id, timestamps)
--   purchase_payments(id, payment_no [auto-generated PP-YYYYMM-######], date, vendor_id, description, total_amount, status, posted_at, timestamps)
+-   sales_invoice_lines(id, invoice_id, account_id, item_id, line_type [item/service], description, qty, unit_price, amount, vat_amount, wtax_amount, tax_code_id, project_id, fund_id, dept_id, timestamps)
+-   purchase_payments(id, payment_no [auto-generated PP-YYYYMM-######], date, vendor_id, description, total_amount, status, affects_inventory, posted_at, timestamps)
 -   purchase_payment_lines(id, payment_id, account_id, description, amount, timestamps)
--   sales_receipts(id, receipt_no [auto-generated SR-YYYYMM-######], date, customer_id, description, total_amount, status, posted_at, timestamps)
+-   sales_receipts(id, receipt_no [auto-generated SR-YYYYMM-######], date, customer_id, description, total_amount, status, affects_inventory, posted_at, timestamps)
 -   sales_receipt_lines(id, receipt_id, account_id, description, amount, timestamps)
 -   cash_outs(id, voucher_number [auto-generated COV-YY#######], date, description, cash_account_id, total_amount, status, created_by, timestamps)
 -   cash_out_lines(id, cash_out_id, account_id, amount, project_id, fund_id, dept_id, memo, timestamps)
 -   cash_ins(id, voucher_number [auto-generated CIV-YY#######], date, description, cash_account_id, total_amount, status, created_by, timestamps)
 -   cash_in_lines(id, cash_in_id, account_id, amount, project_id, fund_id, dept_id, memo, timestamps)
+-   stock_adjustments(id, adjustment_no, date, reason, total_adjustment_value, status, created_by, approved_by, approved_at, project_id, fund_id, dept_id, timestamps)
+-   items(id, code, name, description, barcode, category_id, inventory_account_id, cost_of_goods_sold_account_id, type [item/service], unit_of_measure, cost_method, min_stock_level, max_stock_level, current_stock_quantity, current_stock_value, last_cost_price, average_cost_price, is_active, timestamps)
 
-Note: Some foreign keys were deferred to avoid migration ordering issues; can be added in a later FK migration.
+**Foreign Key Relationships**: All foreign key constraints are properly defined in the consolidated create table migrations, including item_id relationships to items table and dimension relationships to projects, funds, and departments tables.
 
 ## Routes / Endpoints (Current)
 

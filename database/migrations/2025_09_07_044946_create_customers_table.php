@@ -19,6 +19,12 @@ return new class extends Migration
             $table->string('address', 255)->nullable();
             $table->string('phone', 50)->nullable();
             $table->string('email', 150)->nullable();
+            $table->string('student_id', 50)->unique()->nullable();
+            $table->string('emergency_contact_name', 255)->nullable();
+            $table->string('emergency_contact_phone', 50)->nullable();
+            $table->enum('student_status', ['active', 'graduated', 'suspended'])->default('active');
+            $table->integer('enrollment_count')->default(0);
+            $table->decimal('total_paid', 15, 2)->default(0);
             $table->timestamps();
         });
     }

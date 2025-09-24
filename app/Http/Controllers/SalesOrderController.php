@@ -19,8 +19,9 @@ class SalesOrderController extends Controller
     {
         $customers = DB::table('customers')->orderBy('name')->get();
         $accounts = DB::table('accounts')->where('is_postable', 1)->orderBy('code')->get();
+        $items = DB::table('items')->where('is_active', 1)->orderBy('code')->get(['id', 'code', 'name', 'type']);
         $taxCodes = DB::table('tax_codes')->orderBy('code')->get();
-        return view('sales_orders.create', compact('customers', 'accounts', 'taxCodes'));
+        return view('sales_orders.create', compact('customers', 'accounts', 'items', 'taxCodes'));
     }
 
     public function store(Request $request)
@@ -30,11 +31,16 @@ class SalesOrderController extends Controller
             'customer_id' => ['required', 'integer', 'exists:customers,id'],
             'description' => ['nullable', 'string', 'max:255'],
             'lines' => ['required', 'array', 'min:1'],
-            'lines.*.account_id' => ['required', 'integer', 'exists:accounts,id'],
+            'lines.*.line_type' => ['required', 'in:item,service'],
+            'lines.*.item_account_id' => ['required', 'integer'],
             'lines.*.description' => ['nullable', 'string', 'max:255'],
             'lines.*.qty' => ['required', 'numeric', 'min:0.01'],
             'lines.*.unit_price' => ['required', 'numeric', 'min:0'],
-            'lines.*.tax_code_id' => ['nullable', 'integer', 'exists:tax_codes,id'],
+            'lines.*.vat_rate' => ['nullable', 'numeric', 'in:0,11'],
+            'lines.*.wtax_rate' => ['nullable', 'numeric', 'in:0,2'],
+            'lines.*.vat_amount' => ['required', 'numeric', 'min:0'],
+            'lines.*.wtax_amount' => ['required', 'numeric', 'min:0'],
+            'lines.*.amount' => ['required', 'numeric', 'min:0'],
         ]);
 
         return DB::transaction(function () use ($data) {
@@ -50,16 +56,34 @@ class SalesOrderController extends Controller
             $so->update(['order_no' => sprintf('SO-%s-%06d', $ym, $so->id)]);
             $total = 0;
             foreach ($data['lines'] as $l) {
-                $amount = (float)$l['qty'] * (float)$l['unit_price'];
+                $lineType = $l['line_type'];
+                $itemAccountId = $l['item_account_id'];
+                $itemId = null;
+                $accountId = null;
+
+                // Determine if it's an item or account based on line type
+                if ($lineType === 'item') {
+                    $itemId = $itemAccountId;
+                    // For items, we need to get the default inventory account
+                    $accountId = DB::table('items')->where('id', $itemId)->value('inventory_account_id') ?? 1; // Default to first account
+                } else {
+                    $accountId = $itemAccountId;
+                }
+
+                $amount = (float)$l['amount'];
                 $total += $amount;
+
                 SalesOrderLine::create([
                     'order_id' => $so->id,
-                    'account_id' => $l['account_id'],
+                    'line_type' => $lineType,
+                    'item_id' => $itemId,
+                    'account_id' => $accountId,
                     'description' => $l['description'] ?? null,
                     'qty' => (float)$l['qty'],
                     'unit_price' => (float)$l['unit_price'],
                     'amount' => $amount,
-                    'tax_code_id' => $l['tax_code_id'] ?? null,
+                    'vat_amount' => (float)($l['vat_amount'] ?? 0),
+                    'wtax_amount' => (float)($l['wtax_amount'] ?? 0),
                 ]);
             }
             $so->update(['total_amount' => $total]);
@@ -98,21 +122,28 @@ class SalesOrderController extends Controller
         $order = SalesOrder::with('lines')->findOrFail($id);
         $accounts = DB::table('accounts')->where('is_postable', 1)->orderBy('code')->get();
         $customers = DB::table('customers')->orderBy('name')->get();
+        $items = DB::table('items')->where('is_active', 1)->orderBy('code')->get(['id', 'code', 'name', 'type']);
         $taxCodes = DB::table('tax_codes')->orderBy('code')->get();
+        $projects = DB::table('projects')->orderBy('code')->get(['id', 'code', 'name']);
+        $funds = DB::table('funds')->orderBy('code')->get(['id', 'code', 'name']);
+        $departments = DB::table('departments')->orderBy('code')->get(['id', 'code', 'name']);
         $prefill = [
             'date' => now()->toDateString(),
             'customer_id' => $order->customer_id,
             'description' => 'From SO ' . ($order->order_no ?: ('#' . $order->id)),
             'lines' => $order->lines->map(function ($l) {
                 return [
-                    'account_id' => (int)$l->account_id,
+                    'line_type' => $l->line_type,
+                    'item_account_id' => $l->line_type === 'item' ? $l->item_id : $l->account_id,
                     'description' => $l->description,
                     'qty' => (float)$l->qty,
                     'unit_price' => (float)$l->unit_price,
-                    'tax_code_id' => $l->tax_code_id,
+                    'vat_amount' => (float)$l->vat_amount,
+                    'wtax_amount' => (float)$l->wtax_amount,
+                    'amount' => (float)$l->amount,
                 ];
             })->toArray(),
         ];
-        return view('sales_invoices.create', compact('accounts', 'customers', 'taxCodes') + ['prefill' => $prefill, 'sales_order_id' => $order->id]);
+        return view('sales_invoices.create', compact('accounts', 'customers', 'items', 'taxCodes', 'projects', 'funds', 'departments') + ['prefill' => $prefill, 'sales_order_id' => $order->id]);
     }
 }

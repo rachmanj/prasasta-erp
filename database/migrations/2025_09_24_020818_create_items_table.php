@@ -18,7 +18,9 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('barcode')->nullable()->unique();
             $table->foreignId('category_id')->constrained('inventory_categories')->onDelete('restrict');
-            $table->enum('type', ['item'])->default('item');
+            $table->unsignedBigInteger('inventory_account_id')->nullable()->after('category_id');
+            $table->unsignedBigInteger('cost_of_goods_sold_account_id')->nullable()->after('inventory_account_id');
+            $table->enum('type', ['item', 'service'])->default('item');
             $table->string('unit_of_measure')->default('pcs');
             $table->enum('cost_method', ['fifo'])->default('fifo');
             $table->decimal('min_stock_level', 15, 4)->default(0);
@@ -29,6 +31,9 @@ return new class extends Migration
             $table->decimal('average_cost_price', 15, 2)->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
+
+            $table->foreign('inventory_account_id')->references('id')->on('accounts')->onDelete('set null');
+            $table->foreign('cost_of_goods_sold_account_id')->references('id')->on('accounts')->onDelete('set null');
         });
     }
 
