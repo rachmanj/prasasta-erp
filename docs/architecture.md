@@ -831,42 +831,92 @@ The ERP system has undergone comprehensive testing using interactive scenarios a
 
 ## Course Management System (Implemented)
 
-**Status**: Phase 4 & 5 Complete - Database Schema, Models, Controllers, Export Services, Background Jobs, and Dashboard Views operational
+**Status**: Phase 1-3 Complete - Full Accounting Integration with Financial Reporting, Cost Management, and Event-Driven Architecture operational
 
-### Current Implementation (Phase 4 & 5 Complete)
+### Current Implementation (Phase 1-3 Complete)
 
 **Database Schema (Implemented)**
 
 -   `course_categories`: id, name, description, is_active, created_at, updated_at
--   `courses`: id, category_id, name, description, duration_hours, price, max_students, is_active, created_at, updated_at
--   `course_batches`: id, course_id, batch_name, start_date, end_date, trainer_id, max_students, current_enrollments, status, created_at, updated_at
--   `enrollments`: id, course_batch_id, customer_id, enrollment_date, status, payment_status, total_amount, paid_amount, created_at, updated_at
+-   `courses`: id, category_id, name, description, duration_hours, base_price, capacity, status, created_at, updated_at
+-   `course_batches`: id, course_id, batch_code, start_date, end_date, schedule, location, trainer_id, capacity, status, revenue_recognized, revenue_recognized_at, revenue_recognition_journal_id, created_at, updated_at
+-   `enrollments`: id, student_id, batch_id, enrollment_date, status, payment_plan_id, total_amount, journal_entry_id, is_accounted_for, accounted_at, created_at, updated_at
 -   `customers`: id, name, email, phone, address, company, created_at, updated_at
 -   `trainers`: id, name, email, phone, specialization, hourly_rate, is_active, created_at, updated_at
--   `payment_plans`: id, enrollment_id, total_amount, installment_count, status, created_at, updated_at
--   `installment_payments`: id, payment_plan_id, installment_number, due_date, amount, paid_amount, status, payment_date, payment_method, created_at, updated_at
--   `revenue_recognitions`: id, enrollment_id, course_batch_id, recognition_date, amount, status, created_at, updated_at
+-   `payment_plans`: id, code, name, description, installment_count, installment_interval_days, down_payment_percentage, late_fee_percentage, grace_period_days, is_active, created_at, updated_at
+-   `installment_payments`: id, enrollment_id, installment_number, amount, due_date, paid_date, paid_amount, late_fee, status, payment_method, reference_number, journal_entry_id, is_accounted_for, accounted_at, created_at, updated_at
+-   `revenue_recognitions`: id, enrollment_id, batch_id, recognition_date, amount, type, description, journal_entry_id, is_posted, created_at, updated_at
 
 **Models & Relationships (Implemented)**
 
 -   `CourseCategory`: HasMany Course, scopes (active), helper methods (canBeDeleted)
 -   `Course`: BelongsTo CourseCategory, HasMany CourseBatch, scopes (active), helper methods (canBeDeleted, getActiveBatchesCount)
--   `CourseBatch`: BelongsTo Course/Trainer, HasMany Enrollment, scopes (active, upcoming, ongoing, completed), helper methods (canBeDeleted, getEnrollmentCount, getUtilizationPercentage, isFull, getStatusBadgeAttribute)
--   `Enrollment`: BelongsTo CourseBatch/Customer, HasOne PaymentPlan, HasMany RevenueRecognition, scopes (enrolled, completed, cancelled), helper methods (canBeDeleted, getStatusBadgeAttribute, getPaymentStatusBadgeAttribute)
--   `Customer`: HasMany Enrollment, scopes (active), helper methods (canBeDeleted, getTotalEnrollments, getActiveEnrollments)
--   `Trainer`: HasMany CourseBatch, scopes (active), helper methods (canBeDeleted, getTotalBatches, getActiveBatches)
--   `PaymentPlan`: BelongsTo Enrollment, HasMany InstallmentPayment, scopes (active, completed, overdue), helper methods (canBeDeleted, getStatusBadgeAttribute, getTotalPaidAmount, getRemainingAmount, getNextDueDate)
--   `InstallmentPayment`: BelongsTo PaymentPlan, scopes (paid, pending, overdue), helper methods (canBeDeleted, getStatusBadgeAttribute, isOverdue)
--   `RevenueRecognition`: BelongsTo Enrollment/CourseBatch, scopes (recognized, pending), helper methods (canBeDeleted, getStatusBadgeAttribute)
+-   `CourseBatch`: BelongsTo Course/Trainer, HasMany Enrollment, BelongsTo Journal (revenue recognition), scopes (active, upcoming, ongoing, completed), helper methods (canBeDeleted, getEnrollmentCount, getUtilizationPercentage, isFull, getStatusBadgeAttribute, isRevenueRecognized)
+-   `Enrollment`: BelongsTo Customer/Student, CourseBatch, PaymentPlan, Journal, HasMany InstallmentPayment, RevenueRecognition, helper methods (isAccountedFor)
+-   `InstallmentPayment`: BelongsTo Enrollment, Journal, helper methods (isAccountedFor, isOverdue, isPaid)
+-   `RevenueRecognition`: BelongsTo Enrollment, CourseBatch, helper methods (isDeferred, isRecognized, isPosted)
 
-**Service Layer (Implemented)**
+**Accounting Integration (Phase 1-3 Complete)**
 
--   `DashboardDataService`: Comprehensive dashboard analytics with 4 dashboard types (executive, financial, operational, performance), data aggregation, and reporting metrics
--   `ReportGenerationService`: Report generation service with filtering capabilities and data preparation
--   `PaymentProcessingService`: Payment processing logic with installment management and revenue recognition
--   `PDFExportService`: PDF generation service using DomPDF with professional formatting
--   `ExcelExportService`: Excel generation service using Maatwebsite\Excel with multiple sheet support
--   `CSVExportService`: CSV generation service using League\Csv with proper formatting
+-   **CourseAccountingService**: Complete financial integration with automatic journal entry generation
+-   **Event-Driven Architecture**: Automatic accounting triggers via Laravel events
+-   **Multi-dimensional Tracking**: Category-specific revenue and deferred revenue accounts
+-   **Revenue Recognition**: Proper deferred revenue management with batch-level recognition
+-   **Cost Management**: Trainer costs and course delivery expense tracking
+-   **Financial Reporting**: Comprehensive profitability and receivables analysis
+
+**Event Listeners (Implemented)**
+
+-   `ProcessEnrollmentAccounting`: Creates AR and Deferred Revenue entries on enrollment
+-   `ProcessPaymentAccounting`: Records cash receipts and AR settlements
+-   `ProcessRevenueRecognition`: Recognizes deferred revenue when batches start
+-   `ProcessCancellationAccounting`: Properly reverses accounting entries for cancellations
+
+**Financial Reports (Implemented)**
+
+-   **Course Profitability Report**: Revenue analysis, utilization rates, cost breakdown
+-   **Outstanding Receivables Report**: Payment tracking with overdue analysis
+-   **Revenue Recognition Report**: Deferred vs recognized revenue tracking
+-   **Payment Collection Report**: Collection performance and aging analysis
+
+**Account Structure (Enhanced)**
+
+-   **Category-Specific Accounts**: Deferred Revenue and Revenue accounts by course category
+-   **Course-Specific Tracking**: Digital Marketing, Data Analytics, Project Management
+-   **PPN Compliance**: Proper 11% tax handling for Indonesian regulations
+-   **Cost Accounts**: Trainer costs and course delivery expenses
+
+**Controllers & Services (Implemented)**
+
+-   `CourseController`: CRUD operations with permission-based access
+-   `CourseBatchController`: Batch management with capacity tracking
+-   `EnrollmentController`: Student enrollment with automatic accounting triggers
+-   `InstallmentPaymentController`: Payment processing with accounting integration
+-   `CourseFinancialReportController`: Comprehensive financial reporting
+-   `CourseAccountingService`: Core accounting integration service
+-   `CourseCostManagementService`: Cost tracking and profitability analysis
+-   `PaymentProcessingService`: Installment generation and processing
+
+**Routes (Implemented)**
+
+-   Course management routes with proper middleware
+-   Financial report routes with permission-based access
+-   DataTables integration for all listing views
+
+**Permissions (Implemented)**
+
+-   `course_financial_reports.view`: Access to financial reports
+-   `course_financial_reports.profitability`: Course profitability analysis
+-   `course_financial_reports.receivables`: Outstanding receivables management
+-   `course_financial_reports.revenue_recognition`: Revenue recognition reports
+-   `course_financial_reports.payment_collection`: Payment collection analysis
+
+**Testing Status (Complete)**
+
+-   Integration testing with sample data completed
+-   Journal entry generation validated
+-   Event-driven architecture verified
+-   Financial reporting functionality tested
 
 **Background Jobs (Implemented)**
 

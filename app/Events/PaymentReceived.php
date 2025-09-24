@@ -2,15 +2,15 @@
 
 namespace App\Events;
 
-use App\Models\CourseBatch;
+use App\Models\InstallmentPayment;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class BatchStarted
+class PaymentReceived
 {
     use Dispatchable, SerializesModels;
 
     public function __construct(
-        public CourseBatch $batch
+        public InstallmentPayment $payment
     ) {}
 }

@@ -2,15 +2,16 @@
 
 namespace App\Events;
 
-use App\Models\CourseBatch;
+use App\Models\Enrollment;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class BatchStarted
+class CourseCancelled
 {
     use Dispatchable, SerializesModels;
 
     public function __construct(
-        public CourseBatch $batch
+        public Enrollment $enrollment,
+        public string $reason = null
     ) {}
 }

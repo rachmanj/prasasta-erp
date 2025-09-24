@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\InstallmentPayment;
 use App\Models\Enrollment;
 use App\Services\PaymentProcessingService;
+use App\Events\PaymentReceived;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -119,12 +120,15 @@ class InstallmentPaymentController extends Controller
             'reference_number' => ['nullable', 'string', 'max:100'],
         ]);
 
-        $this->paymentService->processPayment(
+        $payment = $this->paymentService->processPayment(
             $installmentPayment,
             $data['paid_amount'],
             $data['payment_method'] ?? null,
             $data['reference_number'] ?? null
         );
+
+        // Trigger payment received event for accounting integration
+        PaymentReceived::dispatch($payment);
 
         if ($request->wantsJson()) {
             return response()->json(['success' => true]);

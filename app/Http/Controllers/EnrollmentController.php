@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Enrollment;
 use App\Models\CourseBatch;
 use App\Models\Master\Customer;
+use App\Events\EnrollmentCreated;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -57,6 +58,9 @@ class EnrollmentController extends Controller
         }
 
         $enrollment = Enrollment::create($data);
+
+        // Trigger enrollment created event for accounting integration
+        EnrollmentCreated::dispatch($enrollment);
 
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'id' => $enrollment->id]);

@@ -17,7 +17,10 @@ class CourseBatch extends Model
         'location',
         'trainer_id',
         'capacity',
-        'status'
+        'status',
+        'revenue_recognized',
+        'revenue_recognized_at',
+        'revenue_recognition_journal_id'
     ];
 
     protected $casts = [
@@ -25,6 +28,8 @@ class CourseBatch extends Model
         'end_date' => 'date',
         'schedule' => 'array',
         'capacity' => 'integer',
+        'revenue_recognized' => 'boolean',
+        'revenue_recognized_at' => 'datetime',
     ];
 
     public function course(): BelongsTo
@@ -50,5 +55,15 @@ class CourseBatch extends Model
     public function getAvailableSlotsAttribute(): int
     {
         return $this->capacity - $this->enrollment_count;
+    }
+
+    public function revenueRecognitionJournal(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Accounting\Journal::class, 'revenue_recognition_journal_id');
+    }
+
+    public function isRevenueRecognized(): bool
+    {
+        return $this->revenue_recognized;
     }
 }

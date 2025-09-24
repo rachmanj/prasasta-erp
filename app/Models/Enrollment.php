@@ -14,12 +14,17 @@ class Enrollment extends Model
         'enrollment_date',
         'status',
         'payment_plan_id',
-        'total_amount'
+        'total_amount',
+        'journal_entry_id',
+        'is_accounted_for',
+        'accounted_at'
     ];
 
     protected $casts = [
         'enrollment_date' => 'date',
         'total_amount' => 'decimal:2',
+        'is_accounted_for' => 'boolean',
+        'accounted_at' => 'datetime',
     ];
 
     public function student(): BelongsTo
@@ -50,5 +55,15 @@ class Enrollment extends Model
     public function revenueRecognitions(): HasMany
     {
         return $this->hasMany(RevenueRecognition::class, 'enrollment_id');
+    }
+
+    public function journalEntry(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Accounting\Journal::class, 'journal_entry_id');
+    }
+
+    public function isAccountedFor(): bool
+    {
+        return $this->is_accounted_for;
     }
 }

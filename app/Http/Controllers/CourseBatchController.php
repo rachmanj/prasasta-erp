@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CourseBatch;
 use App\Models\Course;
+use App\Events\BatchStarted;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -90,7 +91,13 @@ class CourseBatchController extends Controller
             return response()->json(['error' => 'Batch code already exists for this course'], 400);
         }
 
+        $oldStatus = $courseBatch->status;
         $courseBatch->update($data);
+
+        // Trigger batch started event if status changed to 'ongoing'
+        if ($oldStatus !== 'ongoing' && $data['status'] === 'ongoing') {
+            BatchStarted::dispatch($courseBatch);
+        }
 
         if ($request->wantsJson()) {
             return response()->json(['success' => true]);

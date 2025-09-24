@@ -22,7 +22,10 @@ class InstallmentPayment extends Model
         'status',
         'notes',
         'payment_method',
-        'reference_number'
+        'reference_number',
+        'journal_entry_id',
+        'is_accounted_for',
+        'accounted_at'
     ];
 
     protected $casts = [
@@ -31,6 +34,8 @@ class InstallmentPayment extends Model
         'late_fee' => 'decimal:2',
         'due_date' => 'date',
         'paid_date' => 'date',
+        'is_accounted_for' => 'boolean',
+        'accounted_at' => 'datetime',
     ];
 
     public function enrollment(): BelongsTo
@@ -79,6 +84,16 @@ class InstallmentPayment extends Model
     public function getFormattedLateFeeAttribute(): string
     {
         return $this->late_fee > 0 ? 'Rp ' . number_format($this->late_fee, 0, ',', '.') : '-';
+    }
+
+    public function journalEntry(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Accounting\Journal::class, 'journal_entry_id');
+    }
+
+    public function isAccountedFor(): bool
+    {
+        return $this->is_accounted_for;
     }
 
     public function getFormattedTotalAmountAttribute(): string

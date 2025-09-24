@@ -27,6 +27,7 @@ use App\Http\Controllers\RevenueRecognitionController;
 use App\Http\Controllers\PaymentReportController;
 use App\Http\Controllers\RevenueReportController;
 use App\Http\Controllers\CourseReportController;
+use App\Http\Controllers\CourseFinancialReportController;
 use App\Http\Controllers\TrainerReportController;
 use App\Http\Controllers\ExecutiveDashboardController;
 use App\Http\Controllers\FinancialDashboardController;
@@ -244,6 +245,16 @@ Route::middleware('auth')->group(function () {
             Route::get('/performance/export', [CourseReportController::class, 'exportPerformanceReport'])->name('reports.course.performance.export');
             Route::get('/enrollment/export', [CourseReportController::class, 'exportEnrollmentReport'])->name('reports.course.enrollment.export');
             Route::get('/capacity/export', [CourseReportController::class, 'exportCapacityReport'])->name('reports.course.capacity.export');
+        });
+
+        Route::prefix('course-financial')->group(function () {
+            Route::get('/', [CourseFinancialReportController::class, 'index'])->name('reports.course-financial.index');
+            Route::get('/profitability', [CourseFinancialReportController::class, 'courseProfitability'])->name('reports.course-financial.profitability');
+            Route::get('/revenue-recognition', [CourseFinancialReportController::class, 'revenueRecognition'])->name('reports.course-financial.revenue-recognition');
+            Route::get('/outstanding-receivables', [CourseFinancialReportController::class, 'outstandingReceivables'])->name('reports.course-financial.outstanding-receivables');
+            Route::get('/payment-collection', [CourseFinancialReportController::class, 'paymentCollection'])->name('reports.course-financial.payment-collection');
+            Route::get('/profitability/data', [CourseFinancialReportController::class, 'getCourseProfitabilityData'])->name('reports.course-financial.profitability.data');
+            Route::get('/outstanding-receivables/data', [CourseFinancialReportController::class, 'getOutstandingReceivablesData'])->name('reports.course-financial.outstanding-receivables.data');
         });
 
         // Trainer Reports
