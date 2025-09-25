@@ -1,192 +1,174 @@
-@extends('layouts.app')
+@extends('layouts.main')
 
-@section('title', 'Outstanding Receivables Report')
+@section('title_page')
+    Outstanding Receivables Report
+@endsection
+
+@section('breadcrumb_title')
+    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('reports.course-financial.index') }}">Course Financial Reports</a></li>
+    <li class="breadcrumb-item active">Outstanding Receivables</li>
+@endsection
 
 @section('content')
-    <div class="content-wrapper">
-        <div class="content-header">
-            <div class="container-fluid">
-                <div class="row mb-2">
-                    <div class="col-sm-6">
-                        <h1 class="m-0">Outstanding Receivables Report</h1>
+    <!-- Filters -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Filters</h3>
+        </div>
+        <div class="card-body">
+            <form id="filter-form">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Course Category</label>
+                            <select class="form-control" id="category_id" name="category_id">
+                                <option value="">All Categories</option>
+                                <option value="1">Digital Marketing</option>
+                                <option value="2">Data Analytics</option>
+                                <option value="3">Project Management</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="col-sm-6">
-                        <ol class="breadcrumb float-sm-right">
-                            <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</li>
-                            <li class="breadcrumb-item"><a href="{{ route('reports.index') }}">Reports</a></li>
-                            <li class="breadcrumb-item"><a href="{{ route('reports.course-financial.index') }}">Course
-                                    Financial</a></li>
-                            <li class="breadcrumb-item active">Outstanding Receivables</li>
-                        </ol>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Overdue Status</label>
+                            <select class="form-control" id="overdue_status" name="overdue_status">
+                                <option value="">All</option>
+                                <option value="overdue">Overdue Only</option>
+                                <option value="current">Current Only</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Batch Status</label>
+                            <select class="form-control" id="batch_status" name="batch_status">
+                                <option value="">All</option>
+                                <option value="planned">Planned</option>
+                                <option value="ongoing">Ongoing</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <div>
+                                <button type="submit" class="btn btn-primary">Apply Filters</button>
+                                <button type="button" class="btn btn-secondary" id="reset-filters">Reset</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Report Table -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Outstanding Receivables</h3>
+            <div class="card-tools">
+                <button type="button" class="btn btn-success btn-sm" id="export-excel">
+                    <i class="fas fa-file-excel"></i> Export Excel
+                </button>
+                <button type="button" class="btn btn-warning btn-sm" id="send-reminders">
+                    <i class="fas fa-envelope"></i> Send Reminders
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped" id="receivables-table">
+                    <thead>
+                        <tr>
+                            <th>Student Name</th>
+                            <th>Course</th>
+                            <th>Batch</th>
+                            <th>Enrollment Date</th>
+                            <th>Total Amount</th>
+                            <th>Paid Amount</th>
+                            <th>Outstanding</th>
+                            <th>Overdue Amount</th>
+                            <th>Days Overdue</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be loaded via DataTables -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0" id="total-students">0</h4>
+                            <p class="mb-0">Total Students</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <section class="content">
-            <div class="container-fluid">
-                <!-- Filters -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Filters</h3>
-                    </div>
-                    <div class="card-body">
-                        <form id="filter-form">
-                            <div class="row">
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label>Course Category</label>
-                                        <select class="form-control" id="category_id" name="category_id">
-                                            <option value="">All Categories</option>
-                                            <option value="1">Digital Marketing</option>
-                                            <option value="2">Data Analytics</option>
-                                            <option value="3">Project Management</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label>Overdue Status</label>
-                                        <select class="form-control" id="overdue_status" name="overdue_status">
-                                            <option value="">All</option>
-                                            <option value="overdue">Overdue Only</option>
-                                            <option value="current">Current Only</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label>Batch Status</label>
-                                        <select class="form-control" id="batch_status" name="batch_status">
-                                            <option value="">All</option>
-                                            <option value="planned">Planned</option>
-                                            <option value="ongoing">Ongoing</option>
-                                            <option value="completed">Completed</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label>&nbsp;</label>
-                                        <div>
-                                            <button type="submit" class="btn btn-primary">Apply Filters</button>
-                                            <button type="button" class="btn btn-secondary"
-                                                id="reset-filters">Reset</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- Report Table -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Outstanding Receivables</h3>
-                        <div class="card-tools">
-                            <button type="button" class="btn btn-success btn-sm" id="export-excel">
-                                <i class="fas fa-file-excel"></i> Export Excel
-                            </button>
-                            <button type="button" class="btn btn-warning btn-sm" id="send-reminders">
-                                <i class="fas fa-envelope"></i> Send Reminders
-                            </button>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0" id="total-outstanding">Rp 0</h4>
+                            <p class="mb-0">Total Outstanding</p>
                         </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-striped" id="receivables-table">
-                                <thead>
-                                    <tr>
-                                        <th>Student Name</th>
-                                        <th>Course</th>
-                                        <th>Batch</th>
-                                        <th>Enrollment Date</th>
-                                        <th>Total Amount</th>
-                                        <th>Paid Amount</th>
-                                        <th>Outstanding</th>
-                                        <th>Overdue Amount</th>
-                                        <th>Days Overdue</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- Data will be loaded via DataTables -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Summary Cards -->
-                <div class="row">
-                    <div class="col-md-3">
-                        <div class="card bg-primary text-white">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <h4 class="mb-0" id="total-students">0</h4>
-                                        <p class="mb-0">Total Students</p>
-                                    </div>
-                                    <div class="align-self-center">
-                                        <i class="fas fa-users fa-2x"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-3">
-                        <div class="card bg-success text-white">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <h4 class="mb-0" id="total-outstanding">Rp 0</h4>
-                                        <p class="mb-0">Total Outstanding</p>
-                                    </div>
-                                    <div class="align-self-center">
-                                        <i class="fas fa-receipt fa-2x"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-3">
-                        <div class="card bg-danger text-white">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <h4 class="mb-0" id="total-overdue">Rp 0</h4>
-                                        <p class="mb-0">Total Overdue</p>
-                                    </div>
-                                    <div class="align-self-center">
-                                        <i class="fas fa-exclamation-triangle fa-2x"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-3">
-                        <div class="card bg-warning text-white">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <h4 class="mb-0" id="overdue-count">0</h4>
-                                        <p class="mb-0">Overdue Accounts</p>
-                                    </div>
-                                    <div class="align-self-center">
-                                        <i class="fas fa-clock fa-2x"></i>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-receipt fa-2x"></i>
                         </div>
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0" id="total-overdue">Rp 0</h4>
+                            <p class="mb-0">Total Overdue</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-exclamation-triangle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0" id="overdue-count">0</h4>
+                            <p class="mb-0">Overdue Accounts</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 @endsection
 

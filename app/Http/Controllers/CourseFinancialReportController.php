@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
+use App\Models\CourseCategory;
 
 class CourseFinancialReportController extends Controller
 {
@@ -25,7 +26,8 @@ class CourseFinancialReportController extends Controller
 
     public function revenueRecognition()
     {
-        return view('reports.course-financial.revenue-recognition');
+        $categories = CourseCategory::all();
+        return view('reports.course-financial.revenue-recognition', compact('categories'));
     }
 
     public function outstandingReceivables()
@@ -35,7 +37,8 @@ class CourseFinancialReportController extends Controller
 
     public function paymentCollection()
     {
-        return view('reports.course-financial.payment-collection');
+        $categories = CourseCategory::all();
+        return view('reports.course-financial.payment-collection', compact('categories'));
     }
 
     public function getCourseProfitabilityData(Request $request)

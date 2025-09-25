@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('cash_expenses', function (Blueprint $table) {
             $table->id();
-            $table->string('voucher_number')->unique()->nullable()->after('id');
+            $table->string('voucher_number')->unique()->nullable();
             $table->date('date');
             $table->string('description')->nullable();
             $table->unsignedBigInteger('account_id'); // expense account

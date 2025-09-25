@@ -257,33 +257,81 @@ class CourseAccountingService
         $student = $enrollment->student;
         $totalAmount = $enrollment->total_amount;
 
+        // Calculate PPN if applicable (assuming 11% for courses)
+        $ppnRate = 0.11;
+        $baseAmount = $totalAmount / (1 + $ppnRate);
+        $ppnAmount = $totalAmount - $baseAmount;
+
         // Get account IDs
         $arAccountId = $this->getAccountsReceivableAccountId();
         $deferredRevenueAccountId = $this->getDeferredRevenueAccountId($course->category_id);
+        $revenueAccountId = $this->getRevenueAccountId($course->category_id);
         $cancellationRevenueAccountId = $this->getCancellationRevenueAccountId();
+        $ppnOutputAccountId = $this->getPPNOutputAccountId();
 
         $lines = [];
 
-        // Reverse the original enrollment entry
-        $lines[] = [
-            'account_id' => $arAccountId,
-            'debit' => 0,
-            'credit' => $totalAmount,
-            'project_id' => null,
-            'fund_id' => null,
-            'dept_id' => null,
-            'memo' => "Reverse AR - Cancelled enrollment - {$student->name}",
-        ];
+        // Check if revenue has been recognized for this batch
+        $batch = $enrollment->batch;
+        $batch->refresh(); // Ensure we have the latest data
+        $isRevenueRecognized = $batch->revenue_recognized;
 
-        $lines[] = [
-            'account_id' => $deferredRevenueAccountId,
-            'debit' => $totalAmount,
-            'credit' => 0,
-            'project_id' => null,
-            'fund_id' => null,
-            'dept_id' => null,
-            'memo' => "Reverse deferred revenue - Cancelled enrollment - {$student->name}",
-        ];
+        if ($isRevenueRecognized) {
+            // If revenue was already recognized, reverse the course revenue and create cancellation revenue
+            $lines[] = [
+                'account_id' => $revenueAccountId,
+                'debit' => $baseAmount,
+                'credit' => 0,
+                'project_id' => null,
+                'fund_id' => null,
+                'dept_id' => null,
+                'memo' => "Reverse course revenue - Cancelled enrollment - {$student->name}",
+            ];
+
+            $lines[] = [
+                'account_id' => $cancellationRevenueAccountId,
+                'debit' => 0,
+                'credit' => $baseAmount,
+                'project_id' => null,
+                'fund_id' => null,
+                'dept_id' => null,
+                'memo' => "Course cancellation revenue - {$student->name}",
+            ];
+        } else {
+            // If revenue was not recognized, reverse the original enrollment entry
+            $lines[] = [
+                'account_id' => $arAccountId,
+                'debit' => 0,
+                'credit' => $totalAmount,
+                'project_id' => null,
+                'fund_id' => null,
+                'dept_id' => null,
+                'memo' => "Reverse AR - Cancelled enrollment - {$student->name}",
+            ];
+
+            $lines[] = [
+                'account_id' => $deferredRevenueAccountId,
+                'debit' => $baseAmount,
+                'credit' => 0,
+                'project_id' => null,
+                'fund_id' => null,
+                'dept_id' => null,
+                'memo' => "Reverse deferred revenue - Cancelled enrollment - {$student->name}",
+            ];
+
+            // Reverse PPN if applicable
+            if ($ppnAmount > 0) {
+                $lines[] = [
+                    'account_id' => $ppnOutputAccountId,
+                    'debit' => $ppnAmount,
+                    'credit' => 0,
+                    'project_id' => null,
+                    'fund_id' => null,
+                    'dept_id' => null,
+                    'memo' => "Reverse PPN Output - Cancelled enrollment - {$student->name}",
+                ];
+            }
+        }
 
         try {
             $journalId = $this->postingService->postJournal([
@@ -308,12 +356,12 @@ class CourseAccountingService
     /**
      * Get account IDs with category-specific logic
      */
-    private function getAccountsReceivableAccountId(): int
+    public function getAccountsReceivableAccountId(): int
     {
         return (int) DB::table('accounts')->where('code', '1.1.4')->value('id');
     }
 
-    private function getDeferredRevenueAccountId(int $categoryId = null): int
+    public function getDeferredRevenueAccountId(int $categoryId = null): int
     {
         if ($categoryId) {
             $category = DB::table('course_categories')->where('id', $categoryId)->first();
@@ -328,7 +376,7 @@ class CourseAccountingService
         return (int) DB::table('accounts')->where('code', '2.1.5')->value('id');
     }
 
-    private function getRevenueAccountId(int $categoryId = null): int
+    public function getRevenueAccountId(int $categoryId = null): int
     {
         if ($categoryId) {
             $category = DB::table('course_categories')->where('id', $categoryId)->first();
@@ -363,7 +411,7 @@ class CourseAccountingService
         return $categoryMapping[$categoryName][$type] ?? null;
     }
 
-    private function getPPNOutputAccountId(): int
+    public function getPPNOutputAccountId(): int
     {
         return (int) DB::table('accounts')->where('code', '2.1.3')->value('id');
     }
@@ -375,6 +423,6 @@ class CourseAccountingService
 
     private function getCancellationRevenueAccountId(): int
     {
-        return (int) DB::table('accounts')->where('code', '4.1.3')->value('id');
+        return (int) DB::table('accounts')->where('code', '4.1.1.3')->value('id');
     }
 }

@@ -18,8 +18,8 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('barcode')->nullable()->unique();
             $table->foreignId('category_id')->constrained('inventory_categories')->onDelete('restrict');
-            $table->unsignedBigInteger('inventory_account_id')->nullable()->after('category_id');
-            $table->unsignedBigInteger('cost_of_goods_sold_account_id')->nullable()->after('inventory_account_id');
+            $table->unsignedBigInteger('inventory_account_id')->nullable();
+            $table->unsignedBigInteger('cost_of_goods_sold_account_id')->nullable();
             $table->enum('type', ['item', 'service'])->default('item');
             $table->string('unit_of_measure')->default('pcs');
             $table->enum('cost_method', ['fifo'])->default('fifo');

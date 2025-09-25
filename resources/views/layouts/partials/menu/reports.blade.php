@@ -11,7 +11,8 @@
             request()->routeIs('reports.payment.*') ||
             request()->routeIs('reports.revenue.*') ||
             request()->routeIs('reports.course.*') ||
-            request()->routeIs('reports.trainer.*');
+            request()->routeIs('reports.trainer.*') ||
+            request()->routeIs('reports.course-financial.*');
         $assetsActive = request()->routeIs('reports.assets.*');
     @endphp
     <li class="nav-header">REPORTS</li>
@@ -112,7 +113,8 @@
     </li>
 
     <!-- Course Management Reports -->
-    @canany(['reports.payment.view', 'reports.revenue.view', 'reports.course.view', 'reports.trainer.view'])
+    @canany(['reports.payment.view', 'reports.revenue.view', 'reports.course.view', 'reports.trainer.view',
+        'course_financial_reports.view'])
         <li class="nav-item {{ $coursesActive ? 'menu-is-opening menu-open' : '' }}">
             <a href="#" class="nav-link {{ $coursesActive ? 'active' : '' }}">
                 <i class="nav-icon fas fa-graduation-cap"></i>
@@ -155,6 +157,15 @@
                             class="nav-link {{ request()->routeIs('reports.trainer.*') ? 'active' : '' }}">
                             <i class="far fa-circle nav-icon"></i>
                             <p>Trainer Reports</p>
+                        </a>
+                    </li>
+                @endcan
+                @can('course_financial_reports.view')
+                    <li class="nav-item">
+                        <a href="{{ route('reports.course-financial.index') }}"
+                            class="nav-link {{ request()->routeIs('reports.course-financial.*') ? 'active' : '' }}">
+                            <i class="far fa-circle nav-icon"></i>
+                            <p>Course Financial Reports</p>
                         </a>
                     </li>
                 @endcan

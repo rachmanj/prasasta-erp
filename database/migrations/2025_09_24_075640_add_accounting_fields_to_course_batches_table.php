@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('course_batches', function (Blueprint $table) {
-            $table->boolean('revenue_recognized')->default(false)->after('status');
-            $table->timestamp('revenue_recognized_at')->nullable()->after('revenue_recognized');
-            $table->unsignedBigInteger('revenue_recognition_journal_id')->nullable()->after('revenue_recognized_at');
+            $table->boolean('revenue_recognized')->default(false);
+            $table->timestamp('revenue_recognized_at')->nullable();
+            $table->unsignedBigInteger('revenue_recognition_journal_id')->nullable();
 
             $table->foreign('revenue_recognition_journal_id')->references('id')->on('journals')->nullOnDelete();
             $table->index(['revenue_recognized', 'revenue_recognized_at']);

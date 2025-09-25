@@ -12,6 +12,6 @@ class CourseCancelled
 
     public function __construct(
         public Enrollment $enrollment,
-        public string $reason = null
+        public ?string $reason = null
     ) {}
 }

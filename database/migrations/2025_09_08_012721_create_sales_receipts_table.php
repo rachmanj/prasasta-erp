@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('description')->nullable();
             $table->decimal('total_amount', 15, 2)->default(0);
             $table->string('status')->default('draft');
-            $table->boolean('affects_inventory')->default(false)->after('status');
+            $table->boolean('affects_inventory')->default(false);
             $table->timestamp('posted_at')->nullable();
             $table->timestamps();
 

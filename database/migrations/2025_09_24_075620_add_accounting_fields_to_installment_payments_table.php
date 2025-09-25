@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('installment_payments', function (Blueprint $table) {
-            $table->unsignedBigInteger('journal_entry_id')->nullable()->after('reference_number');
-            $table->boolean('is_accounted_for')->default(false)->after('journal_entry_id');
-            $table->timestamp('accounted_at')->nullable()->after('is_accounted_for');
+            $table->unsignedBigInteger('journal_entry_id')->nullable();
+            $table->boolean('is_accounted_for')->default(false);
+            $table->timestamp('accounted_at')->nullable();
 
             $table->foreign('journal_entry_id')->references('id')->on('journals')->nullOnDelete();
             $table->index(['is_accounted_for', 'accounted_at']);

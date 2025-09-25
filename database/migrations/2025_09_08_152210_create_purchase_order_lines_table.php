@@ -15,17 +15,17 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('order_id');
             $table->unsignedBigInteger('account_id');
-            $table->unsignedBigInteger('item_id')->nullable()->after('account_id');
+            $table->unsignedBigInteger('item_id')->nullable();
             $table->string('description')->nullable();
             $table->decimal('qty', 15, 2)->default(1);
             $table->decimal('unit_price', 15, 2)->default(0);
             $table->decimal('amount', 15, 2)->default(0);
-            $table->decimal('vat_amount', 15, 2)->default(0)->after('amount');
-            $table->decimal('wtax_amount', 15, 2)->default(0)->after('vat_amount');
+            $table->decimal('vat_amount', 15, 2)->default(0);
+            $table->decimal('wtax_amount', 15, 2)->default(0);
             $table->unsignedBigInteger('tax_code_id')->nullable();
             $table->timestamps();
 
-            $table->foreign('item_id')->references('id')->on('items')->onDelete('set null');
+            // Foreign key constraint to items table removed for migration order
             $table->index('item_id');
         });
     }
