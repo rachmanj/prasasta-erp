@@ -6,14 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Models\Accounting\PurchasePayment;
 use App\Models\Accounting\PurchasePaymentLine;
 use App\Services\Accounting\PostingService;
+use App\Services\DocumentNumberingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
 class PurchasePaymentController extends Controller
 {
-    public function __construct(private PostingService $posting)
-    {
+    public function __construct(
+        private PostingService $posting,
+        private DocumentNumberingService $numberingService
+    ) {
         $this->middleware(['auth']);
         $this->middleware('permission:ap.payments.view')->only(['index', 'show']);
         $this->middleware('permission:ap.payments.create')->only(['create', 'store']);
@@ -61,8 +64,9 @@ class PurchasePaymentController extends Controller
                 'total_amount' => 0,
             ]);
 
-            $ym = date('Ym', strtotime($data['date']));
-            $payment->update(['payment_no' => sprintf('PP-%s-%06d', $ym, $payment->id)]);
+            // Generate payment number using new numbering system
+            $paymentNumber = $this->numberingService->generateNumber('purchase_payments', $data['date']);
+            $payment->update(['payment_no' => $paymentNumber]);
 
             $total = 0;
             foreach ($data['lines'] as $l) {

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Banking;
 use App\Http\Controllers\Controller;
 use App\Models\Banking\CashOut;
 use App\Services\Accounting\PostingService;
+use App\Services\DocumentNumberingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -12,8 +13,10 @@ use Yajra\DataTables\Facades\DataTables;
 
 class CashOutController extends Controller
 {
-    public function __construct(private PostingService $posting)
-    {
+    public function __construct(
+        private PostingService $posting,
+        private DocumentNumberingService $numberingService
+    ) {
         $this->middleware(['auth']);
     }
 
@@ -67,10 +70,8 @@ class CashOutController extends Controller
             // Calculate total amount
             $totalAmount = collect($data['lines'])->sum('amount');
 
-            // Generate voucher number: COV-YY#######
-            $year = date('y');
-            $nextNumber = DB::table('cash_outs')->whereYear('created_at', date('Y'))->count() + 1;
-            $voucherNumber = sprintf('COV-%s%07d', $year, $nextNumber);
+            // Generate voucher number using new numbering system
+            $voucherNumber = $this->numberingService->generateNumber('cash_outs', $data['date']);
 
             // Create cash out record
             $cashOut = CashOut::create([

@@ -6,10 +6,14 @@ use App\Models\PurchaseOrder;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderLine;
 use Illuminate\Http\Request;
+use App\Services\DocumentNumberingService;
 use Illuminate\Support\Facades\DB;
 
 class SalesOrderController extends Controller
 {
+    public function __construct(
+        private DocumentNumberingService $numberingService
+    ) {}
     public function index()
     {
         return view('sales_orders.index');
@@ -19,9 +23,8 @@ class SalesOrderController extends Controller
     {
         $customers = DB::table('customers')->orderBy('name')->get();
         $accounts = DB::table('accounts')->where('is_postable', 1)->orderBy('code')->get();
-        $items = DB::table('items')->where('is_active', 1)->orderBy('code')->get(['id', 'code', 'name', 'type']);
         $taxCodes = DB::table('tax_codes')->orderBy('code')->get();
-        return view('sales_orders.create', compact('customers', 'accounts', 'items', 'taxCodes'));
+        return view('sales_orders.create', compact('customers', 'accounts', 'taxCodes'));
     }
 
     public function store(Request $request)
@@ -52,8 +55,9 @@ class SalesOrderController extends Controller
                 'status' => 'draft',
                 'total_amount' => 0,
             ]);
-            $ym = date('Ym', strtotime($data['date']));
-            $so->update(['order_no' => sprintf('SO-%s-%06d', $ym, $so->id)]);
+            // Generate order number using new numbering system
+            $orderNumber = $this->numberingService->generateNumber('sales_orders', $data['date']);
+            $so->update(['order_no' => $orderNumber]);
             $total = 0;
             foreach ($data['lines'] as $l) {
                 $lineType = $l['line_type'];

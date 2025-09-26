@@ -1,5 +1,5 @@
 Purpose: Technical reference for understanding system design and development patterns
-Last Updated: 2025-09-24 (Updated with Comprehensive Test Suite)
+Last Updated: 2025-09-26 (Updated with Modal-Based Item Selection System)
 
 ## Architecture Documentation Guidelines
 
@@ -160,19 +160,18 @@ Prasasta ERP is a comprehensive enterprise resource planning system built with L
 -   Upstream Docs: Sales Orders (SO), Purchase Orders (PO), Goods Receipts (GR)
     -   Minimal flow implemented to capture pre-invoice intent and receipts
     -   Status workflow: SO/PO (draft→approved→closed), GR (draft→received)
-    -   Auto-numbering: All documents use consistent `PREFIX-YYYYMM-######` format
-        -   Purchase Orders: `PO-YYYYMM-######` (e.g., PO-202501-000001)
-        -   Sales Orders: `SO-YYYYMM-######` (e.g., SO-202501-000001)
-        -   Purchase Invoices: `PINV-YYYYMM-######` (e.g., PINV-202501-000001)
-        -   Sales Invoices: `SINV-YYYYMM-######` (e.g., SINV-202501-000001)
-        -   Purchase Payments: `PP-YYYYMM-######` (e.g., PP-202501-000001)
-        -   Sales Receipts: `SR-YYYYMM-######` (e.g., SR-202501-000001)
-        -   Asset Disposals: `DIS-YYYYMM-######` (e.g., DIS-202501-000001)
-        -   Goods Receipts: `GR-YYYYMM-######` (e.g., GR-202501-000001)
-        -   Cash Expenses: `CEV-YYYYMM-######` (e.g., CEV-202501-000001)
-        -   Cash-Out: `COV-YY#######` (e.g., COV-250000001)
-        -   Cash-In: `CIV-YY#######` (e.g., CIV-250000001)
-        -   Journals: `JNL-YYYYMM-######` (e.g., JNL-202501-000001)
+    -   Auto-numbering: All documents use consistent **numeric format** `YY + DOCUMENT_CODE + SEQUENCE` (10 digits total)
+        -   **YY**: 2-digit year (e.g., 25 for 2025)
+        -   **DOCUMENT_CODE**: 2-digit numeric code for document type (01-12)
+        -   **SEQUENCE**: 6-digit sequential number (000001-999999, resets yearly)
+        -   **Examples**:
+            -   Asset Disposals: `2501000001` (Year 25 + Code 01 + Sequence 000001)
+            -   Purchase Orders: `2508000001` (Year 25 + Code 08 + Sequence 000001)
+            -   Sales Invoices: `2510000001` (Year 25 + Code 10 + Sequence 000001)
+        -   **Document Type Codes** (alphabetical order):
+            -   01: Asset Disposals, 02: Cash Expenses, 03: Cash-In Vouchers, 04: Cash-Out Vouchers
+            -   05: Goods Receipts, 06: Journals, 07: Purchase Invoices, 08: Purchase Orders
+            -   09: Purchase Payments, 10: Sales Invoices, 11: Sales Orders, 12: Sales Receipts
     -   "Create Invoice" actions on SO/GR/PO prefill Sales/Purchase Invoice create forms
     -   Linkage: `sales_invoices.sales_order_id`, `purchase_invoices.purchase_order_id`, `purchase_invoices.goods_receipt_id` populated on prefill and shown on invoice pages
     -   Quantity summary: PO and GR show pages display ordered vs received quantities
@@ -720,6 +719,88 @@ graph TD
 -   ✅ Bulk update capabilities for dimensions and locations with preview functionality
 
 **Total Implementation**: Complete - All 5 phases implemented and operational
+
+## Modal-Based Item Selection System (Implemented)
+
+**Status**: Complete - Performance-Optimized Item Selection with User Preferences operational
+
+### Current Implementation (Complete)
+
+**Performance Problem Solved**: Replaced inefficient dropdown loading of thousands of inventory items with modal-based selection system using AJAX, pagination, and filtering for optimal performance and user experience.
+
+**Database Schema (Implemented)**
+
+-   `user_item_preferences`: id, user_id, item_id, usage_count, last_used_at, timestamps
+    -   Tracks user item usage patterns for personalized recommendations
+    -   Unique constraint on user_id + item_id to prevent duplicates
+    -   Indexes for performance on user_id + last_used_at and user_id + usage_count
+
+**API Endpoints (Implemented)**
+
+-   `GET /api/items/search` - Paginated item search with filtering (query, category_id, type, page, per_page)
+-   `GET /api/items/{id}` - Single item details retrieval
+-   `GET /api/items/recent` - Recent items for quick access (limit parameter)
+-   `GET /api/items/favorites` - Favorite items based on usage count (limit parameter)
+-   `GET /api/items/categories` - Available categories for filtering
+-   `POST /api/items/track` - Track item selection for user preferences
+
+**Service Layer (Implemented)**
+
+-   `ItemController` (API): Handles all item-related API endpoints with proper validation and error handling
+-   `UserItemPreferencesService`: Manages user item preferences, tracks usage, calculates recent and favorite items
+-   Database indexing: Added performance indexes to items table (is_active+type, is_active+category_id, code, name, barcode, updated_at)
+
+**User Interface (Implemented)**
+
+-   `item-selection-modal.blade.php`: Reusable modal component with search, pagination, filtering, recent items, and favorites
+-   `ItemSelector` JavaScript class: Handles modal functionality, AJAX requests, debounced search, pagination, and item selection
+-   Integration across all Purchase and Sales workflow forms:
+    -   Purchase Orders, Purchase Invoices, Goods Receipts
+    -   Sales Orders, Sales Invoices
+    -   Replaced old select2 dropdowns with modal-based selection
+
+**Technical Features (Implemented)**
+
+-   **Performance Optimization**: AJAX-based loading with pagination (20 items per page)
+-   **Search Functionality**: Real-time search with 300ms debounce on code, name, and barcode
+-   **Filtering**: Category and type (item/service) filtering capabilities
+-   **User Preferences**: Recent items (last 6 used) and favorite items (most used) tracking
+-   **Responsive Design**: Mobile-friendly modal with proper Bootstrap integration
+-   **Error Handling**: Comprehensive error handling with user-friendly messages
+-   **Caching**: Recent and favorite items cached for improved performance
+
+**Integration Points (Current)**
+
+-   **Form Integration**: All workflow forms now use modal-based item selection
+-   **User Experience**: Consistent item selection experience across all modules
+-   **Performance**: Eliminated loading thousands of items into dropdowns
+-   **Scalability**: Handles large inventory databases efficiently
+-   **Personalization**: User-specific recent and favorite items for improved productivity
+
+### Data Flow (Current Implementation)
+
+```mermaid
+graph TD
+    A[User Clicks Item Selection Button] --> B[Modal Opens with Search Interface]
+    B --> C[User Types Search Query]
+    C --> D[Debounced AJAX Request to /api/items/search]
+    D --> E[Database Query with Pagination and Filtering]
+    E --> F[JSON Response with Items Data]
+    F --> G[Modal Updates with Search Results]
+    G --> H[User Selects Item]
+    H --> I[Track Selection via /api/items/track]
+    I --> J[Update User Preferences]
+    J --> K[Populate Form Fields]
+    K --> L[Close Modal]
+```
+
+### Performance Benefits Achieved
+
+-   **Load Time**: Reduced from loading 1000+ items to 20 items per page
+-   **Memory Usage**: Eliminated large JavaScript arrays in browser memory
+-   **User Experience**: Fast search, filtering, and personalized recommendations
+-   **Scalability**: System handles inventory growth without performance degradation
+-   **Network Efficiency**: Only loads data when needed with proper pagination
 
 ## System Testing & Validation
 

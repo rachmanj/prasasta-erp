@@ -11,6 +11,9 @@
 @endsection
 
 @section('content')
+    <!-- Include Item Selection Modal -->
+    @include('components.item-selection-modal')
+
     <section class="content">
         <div class="container-fluid">
             <div class="row">
@@ -18,11 +21,6 @@
                     <div class="card">
                         <div class="card-header">
                             <h3 class="card-title">Create Sales Order</h3>
-                            <div class="card-tools">
-                                <a href="{{ route('sales-orders.index') }}" class="btn btn-secondary btn-sm">
-                                    <i class="fas fa-arrow-left"></i> Back to Sales Orders
-                                </a>
-                            </div>
                         </div>
                         <form method="post" action="{{ route('sales-orders.store') }}" id="so-form">
                             @csrf
@@ -31,15 +29,8 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label>Date <span class="text-danger">*</span></label>
-                                            <div class="input-group">
-                                                <div class="input-group-prepend">
-                                                    <span class="input-group-text"><i
-                                                            class="far fa-calendar-alt"></i></span>
-                                                </div>
-                                                <input type="date" name="date"
-                                                    value="{{ old('date', now()->toDateString()) }}" class="form-control"
-                                                    required>
-                                            </div>
+                                            <input type="date" name="date" class="form-control"
+                                                value="{{ old('date', now()->toDateString()) }}" required>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -55,17 +46,17 @@
                                     </div>
                                 </div>
 
-                                <div class="form-group">
-                                    <label>Description</label>
-                                    <textarea name="description" class="form-control" rows="2" placeholder="Order description">{{ old('description') }}</textarea>
-                                </div>
-
                                 <div class="card card-secondary">
                                     <div class="card-header">
                                         <h3 class="card-title">Order Lines</h3>
-                                        <button type="button" class="btn btn-primary btn-sm float-right" id="add-line">
-                                            <i class="fas fa-plus"></i> Add Line
-                                        </button>
+                                        <div class="btn-group float-right">
+                                            <button type="button" class="btn btn-xs btn-primary" id="add-item-line">
+                                                <i class="fas fa-box mr-1"></i>Add Item
+                                            </button>
+                                            <button type="button" class="btn btn-xs btn-success" id="add-service-line">
+                                                <i class="fas fa-cogs mr-1"></i>Add Service
+                                            </button>
+                                        </div>
                                     </div>
                                     <div class="card-body p-0">
                                         <div class="table-responsive">
@@ -116,14 +107,11 @@
                             </div>
                             <div class="card-footer">
                                 <button class="btn btn-primary" type="submit">
-                                    <i class="fas fa-save"></i> Save Order
+                                    <i class="fas fa-save mr-1"></i> Save Order
                                 </button>
                                 <a href="{{ route('sales-orders.index') }}" class="btn btn-default">
-                                    <i class="fas fa-times"></i> Cancel
+                                    <i class="fas fa-times mr-1"></i> Cancel
                                 </a>
-                                <div class="text-muted float-right">
-                                    <small>* Required fields</small>
-                                </div>
                             </div>
                         </form>
                     </div>
@@ -136,12 +124,11 @@
 @push('scripts')
     <script>
         window.prefill = @json($prefill ?? null);
-        window.items = @json($items ?? []);
         window.accounts = @json($accounts ?? []);
         window.taxCodes = @json($taxCodes ?? []);
 
         $(document).ready(function() {
-            // Initialize Select2BS4 for all select elements
+            // Initialize Select2BS4 for customer select
             $('.select2bs4').select2({
                 theme: 'bootstrap4',
                 placeholder: 'Select an option',
@@ -151,48 +138,20 @@
             let i = 0;
             const $tb = $('#lines tbody');
 
-            // Add first line
-            $('#add-line').on('click', function() {
-                addLineRow();
-            }).trigger('click');
+            // Add item line
+            $('#add-item-line').on('click', function() {
+                addItemLineRow();
+            });
+
+            // Add service line
+            $('#add-service-line').on('click', function() {
+                addServiceLineRow();
+            });
 
             // Remove line
             $tb.on('click', '.rm', function() {
                 $(this).closest('tr').remove();
                 updateTotals();
-            });
-
-            // Handle line type change
-            $(document).on('change', '.line-type-select', function() {
-                const row = $(this).closest('tr');
-                const lineType = $(this).val();
-                const itemAccountSelect = row.find('.item-account-select');
-
-                // Clear current selection
-                itemAccountSelect.empty();
-
-                if (lineType === 'item') {
-                    itemAccountSelect.append('<option value="">-- select item --</option>');
-                    window.items.forEach(function(item) {
-                        itemAccountSelect.append(
-                            `<option value="${item.id}" data-type="item">${item.code} - ${item.name}</option>`
-                            );
-                    });
-                } else if (lineType === 'service') {
-                    itemAccountSelect.append('<option value="">-- select account --</option>');
-                    window.accounts.forEach(function(account) {
-                        itemAccountSelect.append(
-                            `<option value="${account.id}" data-type="account">${account.code} - ${account.name}</option>`
-                            );
-                    });
-                }
-
-                // Reinitialize Select2
-                itemAccountSelect.select2({
-                    theme: 'bootstrap4',
-                    placeholder: 'Select an option',
-                    allowClear: true
-                });
             });
 
             // Update totals when values change
@@ -216,161 +175,339 @@
 
                 if (window.prefill.lines && window.prefill.lines.length > 0) {
                     window.prefill.lines.forEach(function(l) {
-                        addLineRow(l);
+                        if (l.line_type === 'item') {
+                            addItemLineRow(l);
+                        } else {
+                            addServiceLineRow(l);
+                        }
                     });
                 } else {
-                    addLineRow();
+                    addItemLineRow();
                 }
+            } else {
+                addItemLineRow();
+            }
 
-                // Initialize Select2 for prefilled data
-                $('.select2bs4').select2({
+            function addItemLineRow(data = null) {
+                const rowId = `line_${i++}`;
+                const row = $(`
+                    <tr id="${rowId}">
+                        <td>
+                            <select name="lines[${i-1}][line_type]" class="form-control form-control-sm line-type-select" required>
+                                <option value="item" selected>Item</option>
+                                <option value="service">Service</option>
+                            </select>
+                        </td>
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <input type="hidden" name="lines[${i-1}][item_account_id]" class="item-account-id" value="${data?.item_account_id || ''}">
+                                <input type="text" class="form-control item-display" placeholder="Click to select item" readonly>
+                                <div class="input-group-append">
+                                    <button type="button" class="btn btn-outline-primary btn-sm select-item-btn" title="Select Item">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" name="lines[${i-1}][description]" class="form-control form-control-sm description-input" 
+                                   value="${data?.description || ''}" placeholder="Item description">
+                        </td>
+                        <td>
+                            <input type="number" name="lines[${i-1}][qty]" class="form-control form-control-sm qty-input" 
+                                   value="${data?.qty || ''}" step="0.01" min="0.01" required>
+                        </td>
+                        <td>
+                            <input type="number" name="lines[${i-1}][unit_price]" class="form-control form-control-sm price-input" 
+                                   value="${data?.unit_price || ''}" step="0.01" min="0" required>
+                        </td>
+                        <td>
+                            <select name="lines[${i-1}][vat_rate]" class="form-control form-control-sm vat-rate-select">
+                                <option value="0" ${data?.vat_rate == 0 ? 'selected' : ''}>0%</option>
+                                <option value="11" ${data?.vat_rate == 11 ? 'selected' : ''}>11%</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select name="lines[${i-1}][wtax_rate]" class="form-control form-control-sm wtax-rate-select">
+                                <option value="0" ${data?.wtax_rate == 0 ? 'selected' : ''}>0%</option>
+                                <option value="2" ${data?.wtax_rate == 2 ? 'selected' : ''}>2%</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="number" name="lines[${i-1}][amount]" class="form-control form-control-sm amount-input" 
+                                   value="${data?.amount || ''}" readonly>
+                        </td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-sm btn-danger rm" title="Remove line">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `);
+
+                $tb.append(row);
+
+                // Initialize Select2 for line type
+                row.find('.line-type-select').select2({
                     theme: 'bootstrap4',
-                    placeholder: 'Select an option',
-                    allowClear: true
+                    minimumResultsForSearch: Infinity
                 });
 
+                // Handle line type change
+                row.find('.line-type-select').on('change', function() {
+                    const lineType = $(this).val();
+                    const itemDisplay = row.find('.item-display');
+                    const selectBtn = row.find('.select-item-btn');
+
+                    if (lineType === 'service') {
+                        itemDisplay.attr('placeholder', 'Click to select account');
+                        selectBtn.attr('title', 'Select Account');
+                        // Convert to service line
+                        convertToServiceLine(row);
+                    } else {
+                        itemDisplay.attr('placeholder', 'Click to select item');
+                        selectBtn.attr('title', 'Select Item');
+                        // Convert to item line
+                        convertToItemLine(row);
+                    }
+                });
+
+                // Handle item selection
+                row.find('.select-item-btn').on('click', function() {
+                    const lineType = row.find('.line-type-select').val();
+
+                    if (lineType === 'item') {
+                        window.itemSelector.open(function(item) {
+                            row.find('.item-account-id').val(item.id);
+                            row.find('.item-display').val(`${item.code} - ${item.name}`);
+                            row.find('.description-input').val(item.description || item.name);
+                            row.find('.price-input').val(item.last_cost_price || 0);
+                            updateLineAmount(row);
+                            updateTotals();
+                        });
+                    } else {
+                        // Handle account selection for services
+                        openAccountSelector(row);
+                    }
+                });
+
+                // Calculate initial amount
+                updateLineAmount(row);
                 updateTotals();
             }
 
-            function addLineRow(data = {}) {
-                const lineIdx = i++;
-                const tr = document.createElement('tr');
-                tr.setAttribute('data-line-idx', lineIdx);
+            function addServiceLineRow(data = null) {
+                const rowId = `line_${i++}`;
+                const row = $(`
+                    <tr id="${rowId}">
+                        <td>
+                            <select name="lines[${i-1}][line_type]" class="form-control form-control-sm line-type-select" required>
+                                <option value="item">Item</option>
+                                <option value="service" selected>Service</option>
+                            </select>
+                        </td>
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <input type="hidden" name="lines[${i-1}][item_account_id]" class="item-account-id" value="${data?.item_account_id || ''}">
+                                <input type="text" class="form-control item-display" placeholder="Click to select account" readonly>
+                                <div class="input-group-append">
+                                    <button type="button" class="btn btn-outline-primary btn-sm select-item-btn" title="Select Account">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" name="lines[${i-1}][description]" class="form-control form-control-sm description-input" 
+                                   value="${data?.description || ''}" placeholder="Service description">
+                        </td>
+                        <td>
+                            <input type="number" name="lines[${i-1}][qty]" class="form-control form-control-sm qty-input" 
+                                   value="${data?.qty || ''}" step="0.01" min="0.01" required>
+                        </td>
+                        <td>
+                            <input type="number" name="lines[${i-1}][unit_price]" class="form-control form-control-sm price-input" 
+                                   value="${data?.unit_price || ''}" step="0.01" min="0" required>
+                        </td>
+                        <td>
+                            <select name="lines[${i-1}][vat_rate]" class="form-control form-control-sm vat-rate-select">
+                                <option value="0" ${data?.vat_rate == 0 ? 'selected' : ''}>0%</option>
+                                <option value="11" ${data?.vat_rate == 11 ? 'selected' : ''}>11%</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select name="lines[${i-1}][wtax_rate]" class="form-control form-control-sm wtax-rate-select">
+                                <option value="0" ${data?.wtax_rate == 0 ? 'selected' : ''}>0%</option>
+                                <option value="2" ${data?.wtax_rate == 2 ? 'selected' : ''}>2%</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="number" name="lines[${i-1}][amount]" class="form-control form-control-sm amount-input" 
+                                   value="${data?.amount || ''}" readonly>
+                        </td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-sm btn-danger rm" title="Remove line">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `);
 
-                tr.innerHTML = `
-            <td>
-                <select name="lines[${lineIdx}][line_type]" class="form-control form-control-sm line-type-select" required>
-                    <option value="item" ${data.line_type === 'item' ? 'selected' : ''}>Item</option>
-                    <option value="service" ${data.line_type === 'service' ? 'selected' : ''}>Service</option>
-                </select>
-            </td>
-            <td>
-                <select name="lines[${lineIdx}][item_account_id]" class="form-control form-control-sm item-account-select" required>
-                    <option value="">-- select --</option>
-                </select>
-                <input type="hidden" name="lines[${lineIdx}][item_id]" class="item-id-input" value="${data.item_id || ''}">
-                <input type="hidden" name="lines[${lineIdx}][account_id]" class="account-id-input" value="${data.account_id || ''}">
-            </td>
-            <td>
-                <input type="text" name="lines[${lineIdx}][description]" class="form-control form-control-sm description-input"
-                    value="${data.description || ''}" placeholder="Description">
-            </td>
-            <td>
-                <input type="number" step="0.01" min="0.01" name="lines[${lineIdx}][qty]"
-                    class="form-control form-control-sm text-right qty-input" value="${data.qty || 1}" required>
-            </td>
-            <td>
-                <input type="number" step="0.01" min="0" name="lines[${lineIdx}][unit_price]"
-                    class="form-control form-control-sm text-right price-input" value="${data.unit_price || 0}" required>
-            </td>
-            <td>
-                <select name="lines[${lineIdx}][vat_rate]" class="form-control form-control-sm vat-rate-select">
-                    <option value="0" ${data.vat_rate == 0 ? 'selected' : ''}>No</option>
-                    <option value="11" ${data.vat_rate == 11 ? 'selected' : ''}>11%</option>
-                </select>
-                <input type="hidden" name="lines[${lineIdx}][vat_amount]" class="vat-amount-input" value="${data.vat_amount || 0}">
-            </td>
-            <td>
-                <select name="lines[${lineIdx}][wtax_rate]" class="form-control form-control-sm wtax-rate-select">
-                    <option value="0" ${data.wtax_rate == 0 ? 'selected' : ''}>No</option>
-                    <option value="2" ${data.wtax_rate == 2 ? 'selected' : ''}>2%</option>
-                </select>
-                <input type="hidden" name="lines[${lineIdx}][wtax_amount]" class="wtax-amount-input" value="${data.wtax_amount || 0}">
-            </td>
-            <td>
-                <input type="number" step="0.01" min="0" name="lines[${lineIdx}][amount]"
-                    class="form-control form-control-sm text-right amount-input" value="${data.amount || 0}" readonly>
-            </td>
-            <td class="text-center">
-                <button type="button" class="btn btn-xs btn-danger rm">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
-            </td>
-        `;
+                $tb.append(row);
 
-                $tb.append(tr);
-
-                // Initialize Select2BS4 for the newly added select elements
-                $(tr).find('.select2bs4').select2({
+                // Initialize Select2 for line type
+                row.find('.line-type-select').select2({
                     theme: 'bootstrap4',
-                    placeholder: 'Select an option',
+                    minimumResultsForSearch: Infinity
+                });
+
+                // Handle line type change
+                row.find('.line-type-select').on('change', function() {
+                    const lineType = $(this).val();
+                    const itemDisplay = row.find('.item-display');
+                    const selectBtn = row.find('.select-item-btn');
+
+                    if (lineType === 'item') {
+                        itemDisplay.attr('placeholder', 'Click to select item');
+                        selectBtn.attr('title', 'Select Item');
+                        convertToItemLine(row);
+                    } else {
+                        itemDisplay.attr('placeholder', 'Click to select account');
+                        selectBtn.attr('title', 'Select Account');
+                        convertToServiceLine(row);
+                    }
+                });
+
+                // Handle account selection
+                row.find('.select-item-btn').on('click', function() {
+                    openAccountSelector(row);
+                });
+
+                // Calculate initial amount
+                updateLineAmount(row);
+                updateTotals();
+            }
+
+            function convertToItemLine(row) {
+                const itemDisplay = row.find('.item-display');
+                const selectBtn = row.find('.select-item-btn');
+
+                itemDisplay.attr('placeholder', 'Click to select item');
+                selectBtn.attr('title', 'Select Item');
+
+                // Clear current selection
+                row.find('.item-account-id').val('');
+                itemDisplay.val('');
+
+                // Update click handler
+                selectBtn.off('click').on('click', function() {
+                    window.itemSelector.open(function(item) {
+                        row.find('.item-account-id').val(item.id);
+                        row.find('.item-display').val(`${item.code} - ${item.name}`);
+                        row.find('.description-input').val(item.description || item.name);
+                        row.find('.price-input').val(item.last_cost_price || 0);
+                        updateLineAmount(row);
+                        updateTotals();
+                    });
+                });
+            }
+
+            function convertToServiceLine(row) {
+                const itemDisplay = row.find('.item-display');
+                const selectBtn = row.find('.select-item-btn');
+
+                itemDisplay.attr('placeholder', 'Click to select account');
+                selectBtn.attr('title', 'Select Account');
+
+                // Clear current selection
+                row.find('.item-account-id').val('');
+                itemDisplay.val('');
+
+                // Update click handler
+                selectBtn.off('click').on('click', function() {
+                    openAccountSelector(row);
+                });
+            }
+
+            function openAccountSelector(row) {
+                // Simple account selection - could be enhanced with a modal similar to items
+                const accountSelect = $(`
+                    <select class="form-control form-control-sm">
+                        <option value="">-- select account --</option>
+                        ${window.accounts.map(account => 
+                            `<option value="${account.id}">${account.code} - ${account.name}</option>`
+                        ).join('')}
+                    </select>
+                `);
+
+                // Replace the input group with select
+                const inputGroup = row.find('.input-group');
+                inputGroup.html(accountSelect);
+
+                // Initialize Select2
+                accountSelect.select2({
+                    theme: 'bootstrap4',
+                    placeholder: 'Select an account',
                     allowClear: true
                 });
 
-                // Trigger line type change to populate item/account dropdown
-                $(tr).find('.line-type-select').trigger('change');
+                // Handle selection
+                accountSelect.on('change', function() {
+                    const accountId = $(this).val();
+                    const account = window.accounts.find(acc => acc.id == accountId);
 
-                // Set prefill data if available
-                if (data.line_type === 'item' && data.item_id) {
-                    $(tr).find('.item-account-select').val(data.item_id);
-                    $(tr).find('.item-id-input').val(data.item_id);
-                } else if (data.line_type === 'service' && data.account_id) {
-                    $(tr).find('.item-account-select').val(data.account_id);
-                    $(tr).find('.account-id-input').val(data.account_id);
-                }
-
-                updateLineAmount(tr);
-                updateTotals();
+                    if (account) {
+                        row.find('.item-account-id').val(accountId);
+                        row.find('.description-input').val(account.name);
+                        updateLineAmount(row);
+                        updateTotals();
+                    }
+                });
             }
 
             function updateLineAmount(row) {
-                const $row = $(row);
-                const qty = parseFloat($row.find('.qty-input').val() || 0);
-                const price = parseFloat($row.find('.price-input').val() || 0);
-                const vatRate = parseFloat($row.find('.vat-rate-select').val() || 0);
-                const wtaxRate = parseFloat($row.find('.wtax-rate-select').val() || 0);
+                const qty = parseFloat(row.find('.qty-input').val()) || 0;
+                const price = parseFloat(row.find('.price-input').val()) || 0;
+                const vatRate = parseFloat(row.find('.vat-rate-select').val()) || 0;
+                const wtaxRate = parseFloat(row.find('.wtax-rate-select').val()) || 0;
 
                 const originalAmount = qty * price;
                 const vatAmount = originalAmount * (vatRate / 100);
                 const wtaxAmount = originalAmount * (wtaxRate / 100);
-                const amount = originalAmount + vatAmount - wtaxAmount;
+                const totalAmount = originalAmount + vatAmount - wtaxAmount;
 
-                // Update hidden inputs with calculated amounts
-                $row.find('.vat-amount-input').val(vatAmount.toFixed(2));
-                $row.find('.wtax-amount-input').val(wtaxAmount.toFixed(2));
-                $row.find('.amount-input').val(amount.toFixed(2));
+                row.find('.amount-input').val(totalAmount.toFixed(2));
+
+                // Store calculated values for form submission
+                row.find('input[name*="[vat_amount]"]').val(vatAmount.toFixed(2));
+                row.find('input[name*="[wtax_amount]"]').val(wtaxAmount.toFixed(2));
             }
 
             function updateTotals() {
-                let originalAmount = 0;
-                let totalVat = 0;
-                let totalWtax = 0;
-                let amountDue = 0;
+                let originalTotal = 0;
+                let vatTotal = 0;
+                let wtaxTotal = 0;
 
-                // Calculate totals from all line items
-                $('#lines tbody tr').each(function() {
-                    const qty = parseFloat($(this).find('.qty-input').val() || 0);
-                    const price = parseFloat($(this).find('.price-input').val() || 0);
-                    const vatAmount = parseFloat($(this).find('.vat-amount-input').val() || 0);
-                    const wtaxAmount = parseFloat($(this).find('.wtax-amount-input').val() || 0);
+                $tb.find('tr').each(function() {
+                    const amount = parseFloat($(this).find('.amount-input').val()) || 0;
+                    const qty = parseFloat($(this).find('.qty-input').val()) || 0;
+                    const price = parseFloat($(this).find('.price-input').val()) || 0;
+                    const vatRate = parseFloat($(this).find('.vat-rate-select').val()) || 0;
+                    const wtaxRate = parseFloat($(this).find('.wtax-rate-select').val()) || 0;
 
-                    originalAmount += qty * price;
-                    totalVat += vatAmount;
-                    totalWtax += wtaxAmount;
+                    const originalAmount = qty * price;
+                    const vatAmount = originalAmount * (vatRate / 100);
+                    const wtaxAmount = originalAmount * (wtaxRate / 100);
+
+                    originalTotal += originalAmount;
+                    vatTotal += vatAmount;
+                    wtaxTotal += wtaxAmount;
                 });
 
-                amountDue = originalAmount + totalVat - totalWtax;
-
-                // Update display with Indonesian number formatting
-                $('#original-amount').text(originalAmount.toLocaleString('id-ID', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                }));
-
-                $('#total-vat').text(totalVat.toLocaleString('id-ID', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                }));
-
-                $('#total-wtax').text(totalWtax.toLocaleString('id-ID', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                }));
-
-                $('#amount-due').text(amountDue.toLocaleString('id-ID', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                }));
+                $('#original-amount').text(originalTotal.toFixed(2));
+                $('#total-vat').text(vatTotal.toFixed(2));
+                $('#total-wtax').text(wtaxTotal.toFixed(2));
+                $('#amount-due').text((originalTotal + vatTotal - wtaxTotal).toFixed(2));
             }
         });
     </script>

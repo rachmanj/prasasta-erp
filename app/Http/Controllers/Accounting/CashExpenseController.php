@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Accounting;
 use App\Http\Controllers\Controller;
 use App\Models\Accounting\CashExpense;
 use App\Services\Accounting\PostingService;
+use App\Services\DocumentNumberingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -12,8 +13,10 @@ use Yajra\DataTables\Facades\DataTables;
 
 class CashExpenseController extends Controller
 {
-    public function __construct(private PostingService $posting)
-    {
+    public function __construct(
+        private PostingService $posting,
+        private DocumentNumberingService $numberingService
+    ) {
         $this->middleware(['auth']);
     }
 
@@ -50,9 +53,8 @@ class CashExpenseController extends Controller
         $amount = $data['amount_raw'] ?? $data['amount'];
 
         return DB::transaction(function () use ($data, $amount) {
-            // Generate voucher number: CEV-YYYYMM-######
-            $dateYm = date('Ym', strtotime($data['date']));
-            $voucherNumber = sprintf('CEV-%s-%06d', $dateYm, DB::table('cash_expenses')->count() + 1);
+            // Generate voucher number using new numbering system
+            $voucherNumber = $this->numberingService->generateNumber('cash_expenses', $data['date']);
 
             $exp = CashExpense::create([
                 'voucher_number' => $voucherNumber,
@@ -68,6 +70,7 @@ class CashExpenseController extends Controller
             $this->posting->postJournal([
                 'date' => $exp->date,
                 'description' => 'Cash Expense Voucher ' . $exp->voucher_number,
+                'status' => 'posted',
                 'source_type' => 'cash_expense',
                 'source_id' => $exp->id,
                 'lines' => [

@@ -62,6 +62,16 @@ Route::get('/', function () {
     return redirect('/login');
 });
 
+// API Routes for Item Selection
+Route::prefix('api')->group(function () {
+    Route::get('/items/search', [App\Http\Controllers\Api\ItemController::class, 'search']);
+    Route::get('/items/recent', [App\Http\Controllers\Api\ItemController::class, 'recent']);
+    Route::get('/items/favorites', [App\Http\Controllers\Api\ItemController::class, 'favorites']);
+    Route::get('/items/categories', [App\Http\Controllers\Api\ItemController::class, 'categories']);
+    Route::post('/items/track', [App\Http\Controllers\Api\ItemController::class, 'trackSelection']);
+    Route::get('/items/{id}', [App\Http\Controllers\Api\ItemController::class, 'show']);
+});
+
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth'])->name('dashboard');

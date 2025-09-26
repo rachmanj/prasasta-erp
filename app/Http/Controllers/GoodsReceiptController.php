@@ -6,10 +6,14 @@ use App\Models\GoodsReceipt;
 use App\Models\GoodsReceiptLine;
 use App\Models\PurchaseOrder;
 use Illuminate\Http\Request;
+use App\Services\DocumentNumberingService;
 use Illuminate\Support\Facades\DB;
 
 class GoodsReceiptController extends Controller
 {
+    public function __construct(
+        private DocumentNumberingService $numberingService
+    ) {}
     public function index()
     {
         return view('goods_receipts.index');
@@ -55,8 +59,9 @@ class GoodsReceiptController extends Controller
                 'status' => 'draft',
                 'total_amount' => 0,
             ]);
-            $ym = date('Ym', strtotime($data['date']));
-            $grn->update(['grn_no' => sprintf('GR-%s-%06d', $ym, $grn->id)]);
+            // Generate GR number using new numbering system
+            $grnNumber = $this->numberingService->generateNumber('goods_receipts', $data['date']);
+            $grn->update(['grn_no' => $grnNumber]);
             $total = 0;
             foreach ($data['lines'] as $l) {
                 $lineType = $l['line_type'];

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Banking;
 use App\Http\Controllers\Controller;
 use App\Models\Banking\CashIn;
 use App\Services\Accounting\PostingService;
+use App\Services\DocumentNumberingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -12,8 +13,10 @@ use Yajra\DataTables\Facades\DataTables;
 
 class CashInController extends Controller
 {
-    public function __construct(private PostingService $posting)
-    {
+    public function __construct(
+        private PostingService $posting,
+        private DocumentNumberingService $numberingService
+    ) {
         $this->middleware(['auth']);
     }
 
@@ -67,10 +70,8 @@ class CashInController extends Controller
             // Calculate total amount
             $totalAmount = collect($data['lines'])->sum('amount');
 
-            // Generate voucher number: CIV-YY#######
-            $year = date('y');
-            $nextNumber = DB::table('cash_ins')->whereYear('created_at', date('Y'))->count() + 1;
-            $voucherNumber = sprintf('CIV-%s%07d', $year, $nextNumber);
+            // Generate voucher number using new numbering system
+            $voucherNumber = $this->numberingService->generateNumber('cash_ins', $data['date']);
 
             // Create cash in record
             $cashIn = CashIn::create([
