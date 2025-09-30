@@ -106,6 +106,30 @@ class CourseBatchController extends Controller
         return redirect()->route('course-batches.index')->with('success', 'Course batch updated successfully');
     }
 
+    /**
+     * Start a course batch (change status to ongoing and trigger revenue recognition)
+     */
+    public function start(CourseBatch $courseBatch)
+    {
+        if ($courseBatch->status !== 'planned') {
+            return response()->json(['error' => 'Only planned batches can be started'], 400);
+        }
+
+        if ($courseBatch->start_date > now()) {
+            return response()->json(['error' => 'Cannot start batch before start date'], 400);
+        }
+
+        $courseBatch->update(['status' => 'ongoing']);
+
+        // Trigger batch started event for revenue recognition
+        BatchStarted::dispatch($courseBatch);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Batch started successfully. Revenue recognition job dispatched.'
+        ]);
+    }
+
     public function destroy(CourseBatch $courseBatch)
     {
         // Check if batch has enrollments
@@ -156,14 +180,20 @@ class CourseBatchController extends Controller
             ->addColumn('actions', function ($row) {
                 $editUrl = route('course-batches.update', $row->id);
                 $deleteUrl = route('course-batches.destroy', $row->id);
+                $startUrl = route('course-batches.start', $row->id);
 
                 $actions = '';
 
-                if (auth()->user()->can('course_batches.update')) {
+                // Add Start button for planned batches
+                if ($row->status === 'planned' && auth()->user()?->can('course_batches.update')) {
+                    $actions .= '<button type="button" class="btn btn-xs btn-success btn-start" data-id="' . $row->id . '" data-url="' . $startUrl . '" title="Start Batch">Start</button> ';
+                }
+
+                if (auth()->user()?->can('course_batches.update')) {
                     $actions .= '<button type="button" class="btn btn-xs btn-info btn-edit" data-id="' . $row->id . '" data-course-id="' . $row->course_id . '" data-batch-code="' . e($row->batch_code) . '" data-start-date="' . $row->start_date->format('Y-m-d') . '" data-end-date="' . $row->end_date->format('Y-m-d') . '" data-location="' . e($row->location) . '" data-trainer-id="' . $row->trainer_id . '" data-capacity="' . $row->capacity . '" data-status="' . $row->status . '" data-url="' . $editUrl . '">Edit</button>';
                 }
 
-                if (auth()->user()->can('course_batches.delete')) {
+                if (auth()->user()?->can('course_batches.delete')) {
                     $actions .= ' <button type="button" class="btn btn-xs btn-danger btn-delete" data-id="' . $row->id . '" data-url="' . $deleteUrl . '">Delete</button>';
                 }
 

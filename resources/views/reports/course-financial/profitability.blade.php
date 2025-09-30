@@ -61,8 +61,8 @@
         <div class="card-header">
             <h3 class="card-title">Course Profitability Analysis</h3>
             <div class="card-tools">
-                <button type="button" class="btn btn-success btn-sm" id="export-excel">
-                    <i class="fas fa-file-excel"></i> Export Excel
+                <button type="button" class="btn btn-success btn-sm" id="export-csv">
+                    <i class="fas fa-file-csv"></i> Export CSV
                 </button>
             </div>
         </div>
@@ -80,6 +80,8 @@
                             <th>Total Revenue</th>
                             <th>Recognized Revenue</th>
                             <th>Deferred Revenue</th>
+                            <th>Recognition Status</th>
+                            <th>Recognition Date</th>
                             <th>Revenue per Enrollment</th>
                             <th>Utilization Rate</th>
                         </tr>
@@ -158,118 +160,227 @@
             </div>
         </div>
     </div>
-@endsection
 
-@push('scripts')
-    <script>
-        $(document).ready(function() {
-            // Initialize DataTable
-            var table = $('#profitability-table').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: {
-                    url: '{{ route('reports.course-financial.profitability.data') }}',
-                    data: function(d) {
-                        d.start_date = $('#start_date').val();
-                        d.end_date = $('#end_date').val();
-                        d.category_id = $('#category_id').val();
+    <!-- Revenue Recognition Summary Cards -->
+    <div class="row mt-3">
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0" id="total-recognized">Rp 0</h4>
+                            <p class="mb-0">Total Recognized</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card bg-secondary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0" id="total-deferred">Rp 0</h4>
+                            <p class="mb-0">Total Deferred</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0" id="recognition-rate">0%</h4>
+                            <p class="mb-0">Recognition Rate</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-percentage fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0" id="courses-recognized">0</h4>
+                            <p class="mb-0">Courses Recognized</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-graduation-cap fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endsection
+
+    @push('scripts')
+        <script>
+            $(document).ready(function() {
+                // Initialize DataTable
+                var table = $('#profitability-table').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        url: '{{ route('reports.course-financial.profitability.data') }}',
+                        data: function(d) {
+                            d.start_date = $('#start_date').val();
+                            d.end_date = $('#end_date').val();
+                            d.category_id = $('#category_id').val();
+                        }
+                    },
+                    columns: [{
+                            data: 'code',
+                            name: 'code'
+                        },
+                        {
+                            data: 'name',
+                            name: 'name'
+                        },
+                        {
+                            data: 'category_name',
+                            name: 'category_name'
+                        },
+                        {
+                            data: 'base_price_formatted',
+                            name: 'base_price'
+                        },
+                        {
+                            data: 'total_batches',
+                            name: 'total_batches'
+                        },
+                        {
+                            data: 'total_enrollments',
+                            name: 'total_enrollments'
+                        },
+                        {
+                            data: 'total_revenue_formatted',
+                            name: 'total_revenue'
+                        },
+                        {
+                            data: 'recognized_revenue_formatted',
+                            name: 'recognized_revenue'
+                        },
+                        {
+                            data: 'deferred_revenue',
+                            name: 'deferred_revenue'
+                        },
+                        {
+                            data: 'recognition_status',
+                            name: 'recognition_status'
+                        },
+                        {
+                            data: 'recognition_date',
+                            name: 'recognition_date'
+                        },
+                        {
+                            data: 'revenue_per_enrollment',
+                            name: 'revenue_per_enrollment'
+                        },
+                        {
+                            data: 'utilization_rate',
+                            name: 'utilization_rate'
+                        }
+                    ],
+                    order: [
+                        [6, 'desc']
+                    ], // Sort by total revenue descending
+                    pageLength: 25,
+                    responsive: true
+                });
+
+                // Filter form submission
+                $('#filter-form').on('submit', function(e) {
+                    e.preventDefault();
+                    table.draw();
+                });
+
+                // Reset filters
+                $('#reset-filters').on('click', function() {
+                    $('#filter-form')[0].reset();
+                    table.draw();
+                });
+
+                // Export functionality
+                $('#export-csv').on('click', function() {
+                    const startDate = $('#start_date').val();
+                    const endDate = $('#end_date').val();
+                    const categoryId = $('#category_id').val();
+
+                    // Build export URL with current filters
+                    let exportUrl = '{{ route('reports.course-financial.profitability.export') }}';
+                    const params = new URLSearchParams();
+
+                    if (startDate) params.append('start_date', startDate);
+                    if (endDate) params.append('end_date', endDate);
+                    if (categoryId) params.append('category_id', categoryId);
+
+                    if (params.toString()) {
+                        exportUrl += '?' + params.toString();
                     }
-                },
-                columns: [{
-                        data: 'code',
-                        name: 'code'
-                    },
-                    {
-                        data: 'name',
-                        name: 'name'
-                    },
-                    {
-                        data: 'category_name',
-                        name: 'category_name'
-                    },
-                    {
-                        data: 'base_price_formatted',
-                        name: 'base_price'
-                    },
-                    {
-                        data: 'total_batches',
-                        name: 'total_batches'
-                    },
-                    {
-                        data: 'total_enrollments',
-                        name: 'total_enrollments'
-                    },
-                    {
-                        data: 'total_revenue_formatted',
-                        name: 'total_revenue'
-                    },
-                    {
-                        data: 'recognized_revenue_formatted',
-                        name: 'recognized_revenue'
-                    },
-                    {
-                        data: 'deferred_revenue',
-                        name: 'deferred_revenue'
-                    },
-                    {
-                        data: 'revenue_per_enrollment',
-                        name: 'revenue_per_enrollment'
-                    },
-                    {
-                        data: 'utilization_rate',
-                        name: 'utilization_rate'
+
+                    // Open export URL in new window
+                    window.open(exportUrl, '_blank');
+                });
+
+                // Update summary cards when data loads
+                table.on('draw', function() {
+                    updateSummaryCards();
+                });
+
+                function updateSummaryCards() {
+                    var data = table.rows({
+                        filter: 'applied'
+                    }).data();
+                    var totalCourses = data.length;
+                    var totalRevenue = 0;
+                    var totalRecognized = 0;
+                    var totalDeferred = 0;
+                    var totalEnrollments = 0;
+                    var totalUtilization = 0;
+                    var coursesRecognized = 0;
+
+                    for (var i = 0; i < data.length; i++) {
+                        totalRevenue += parseFloat(data[i].total_revenue) || 0;
+                        totalRecognized += parseFloat(data[i].recognized_revenue) || 0;
+                        totalDeferred += parseFloat(data[i].deferred_revenue.replace(/[^\d]/g, '')) || 0;
+                        totalEnrollments += parseInt(data[i].total_enrollments) || 0;
+                        totalUtilization += parseFloat(data[i].utilization_rate.replace('%', '')) || 0;
+
+                        // Count courses with recognition status
+                        if (data[i].recognition_status && data[i].recognition_status.includes('Fully Recognized')) {
+                            coursesRecognized++;
+                        }
                     }
-                ],
-                order: [
-                    [6, 'desc']
-                ], // Sort by total revenue descending
-                pageLength: 25,
-                responsive: true
-            });
 
-            // Filter form submission
-            $('#filter-form').on('submit', function(e) {
-                e.preventDefault();
-                table.draw();
-            });
+                    var recognitionRate = totalRevenue > 0 ? (totalRecognized / totalRevenue) * 100 : 0;
 
-            // Reset filters
-            $('#reset-filters').on('click', function() {
-                $('#filter-form')[0].reset();
-                table.draw();
-            });
+                    // Update basic summary cards
+                    $('#total-courses').text(totalCourses);
+                    $('#total-revenue').text('Rp ' + totalRevenue.toLocaleString('id-ID'));
+                    $('#total-enrollments').text(totalEnrollments);
+                    $('#avg-utilization').text((totalUtilization / totalCourses).toFixed(1) + '%');
 
-            // Export functionality
-            $('#export-excel').on('click', function() {
-                // Implementation for Excel export
-                alert('Excel export functionality would be implemented here');
-            });
-
-            // Update summary cards when data loads
-            table.on('draw', function() {
-                updateSummaryCards();
-            });
-
-            function updateSummaryCards() {
-                var data = table.rows({
-                    filter: 'applied'
-                }).data();
-                var totalCourses = data.length;
-                var totalRevenue = 0;
-                var totalEnrollments = 0;
-                var totalUtilization = 0;
-
-                for (var i = 0; i < data.length; i++) {
-                    totalRevenue += parseFloat(data[i].total_revenue) || 0;
-                    totalEnrollments += parseInt(data[i].total_enrollments) || 0;
-                    totalUtilization += parseFloat(data[i].utilization_rate.replace('%', '')) || 0;
+                    // Update revenue recognition summary cards
+                    $('#total-recognized').text('Rp ' + totalRecognized.toLocaleString('id-ID'));
+                    $('#total-deferred').text('Rp ' + totalDeferred.toLocaleString('id-ID'));
+                    $('#recognition-rate').text(recognitionRate.toFixed(1) + '%');
+                    $('#courses-recognized').text(coursesRecognized);
                 }
-
-                $('#total-courses').text(totalCourses);
-                $('#total-revenue').text('Rp ' + totalRevenue.toLocaleString('id-ID'));
-                $('#total-enrollments').text(totalEnrollments);
-                $('#avg-utilization').text((totalUtilization / totalCourses).toFixed(1) + '%');
-            }
-        });
-    </script>
-@endpush
+            });
+        </script>
+    @endpush

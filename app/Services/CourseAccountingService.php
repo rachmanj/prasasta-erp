@@ -85,7 +85,7 @@ class CourseAccountingService
                 'source_type' => 'enrollment',
                 'source_id' => $enrollment->id,
                 'lines' => $lines,
-                'posted_by' => auth()->id(),
+                'posted_by' => auth()->id() ?? 1,
                 'status' => 'posted',
             ]);
 
@@ -153,7 +153,7 @@ class CourseAccountingService
                 'source_type' => 'installment_payment',
                 'source_id' => $payment->id,
                 'lines' => $lines,
-                'posted_by' => auth()->id(),
+                'posted_by' => auth()->id() ?? 1,
                 'status' => 'posted',
             ]);
 
@@ -228,7 +228,7 @@ class CourseAccountingService
                 'source_type' => 'course_batch',
                 'source_id' => $batch->id,
                 'lines' => $lines,
-                'posted_by' => auth()->id(),
+                'posted_by' => auth()->id() ?? 1,
                 'status' => 'posted',
             ]);
 
@@ -244,6 +244,86 @@ class CourseAccountingService
             return $journalId;
         } catch (\Exception $e) {
             Log::error("Failed to create revenue recognition journal entry for batch {$batch->id}: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * Recognize revenue for a single enrollment
+     */
+    public function recognizeRevenue(Enrollment $enrollment, string $recognitionDate = null): bool
+    {
+        try {
+            $recognitionDate = $recognitionDate ?: now()->toDateString();
+
+            // Check if revenue already recognized for this enrollment
+            $existingRecognition = $enrollment->revenueRecognitions()
+                ->where('type', 'recognized')
+                ->where('recognition_date', $recognitionDate)
+                ->first();
+
+            if ($existingRecognition) {
+                Log::info("Revenue already recognized for enrollment ID: {$enrollment->id}");
+                return true;
+            }
+
+            $course = $enrollment->batch->course;
+            $totalAmount = $enrollment->total_amount;
+            $baseRevenue = $totalAmount / 1.11; // Remove PPN from total
+
+            // Get account IDs
+            $deferredRevenueAccountId = $this->getDeferredRevenueAccountId($course->category_id);
+            $revenueAccountId = $this->getRevenueAccountId($course->category_id);
+
+            $lines = [];
+
+            // Debit: Deferred Revenue
+            $lines[] = [
+                'account_id' => $deferredRevenueAccountId,
+                'debit' => $baseRevenue,
+                'credit' => 0,
+                'project_id' => null,
+                'fund_id' => null,
+                'dept_id' => null,
+                'memo' => "Recognize deferred revenue - {$course->name} - Enrollment: {$enrollment->id}",
+            ];
+
+            // Credit: Course Revenue
+            $lines[] = [
+                'account_id' => $revenueAccountId,
+                'debit' => 0,
+                'credit' => $baseRevenue,
+                'project_id' => null,
+                'fund_id' => null,
+                'dept_id' => null,
+                'memo' => "Course revenue recognized - {$course->name} - Enrollment: {$enrollment->id}",
+            ];
+
+            $journalId = $this->postingService->postJournal([
+                'date' => $recognitionDate,
+                'description' => "Revenue Recognition - {$course->name} - Enrollment: {$enrollment->id}",
+                'source_type' => 'enrollment',
+                'source_id' => $enrollment->id,
+                'lines' => $lines,
+                'posted_by' => auth()->id() ?? 1,
+                'status' => 'posted',
+            ]);
+
+            // Create revenue recognition record
+            $enrollment->revenueRecognitions()->create([
+                'batch_id' => $enrollment->batch_id,
+                'recognition_date' => $recognitionDate,
+                'amount' => $baseRevenue,
+                'type' => 'recognized',
+                'description' => "Revenue recognized for {$course->name}",
+                'journal_entry_id' => $journalId,
+                'is_posted' => true,
+            ]);
+
+            Log::info("Created revenue recognition journal entry {$journalId} for enrollment {$enrollment->id}");
+            return true;
+        } catch (\Exception $e) {
+            Log::error("Failed to create revenue recognition journal entry for enrollment {$enrollment->id}: " . $e->getMessage());
             throw $e;
         }
     }
@@ -340,7 +420,7 @@ class CourseAccountingService
                 'source_type' => 'enrollment_cancellation',
                 'source_id' => $enrollment->id,
                 'lines' => $lines,
-                'posted_by' => auth()->id(),
+                'posted_by' => auth()->id() ?? 1,
                 'status' => 'posted',
             ]);
 

@@ -234,6 +234,43 @@
                 $('#batchModal form').attr('action', btn.data('url')).data('method', 'PATCH');
             });
 
+            $(document).on('click', '.btn-start', function() {
+                const btn = $(this);
+                const batchId = btn.data('id');
+
+                Swal.fire({
+                    title: 'Start Course Batch?',
+                    text: "This will change the batch status to 'ongoing' and trigger revenue recognition for all enrolled students.",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#28a745',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Yes, start batch!',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: btn.data('url'),
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json'
+                            },
+                            success: function(response) {
+                                toastr.success(response.message ||
+                                    'Batch started successfully');
+                                table.ajax.reload();
+                            },
+                            error: function(xhr) {
+                                const error = xhr.responseJSON?.error ||
+                                    'Failed to start course batch';
+                                toastr.error(error);
+                            }
+                        });
+                    }
+                });
+            });
+
             $(document).on('click', '.btn-delete', function() {
                 const btn = $(this);
                 const batchId = btn.data('id');

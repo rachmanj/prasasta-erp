@@ -40,7 +40,7 @@ class GenerateInstallmentsJob implements ShouldQueue
             // Generate installments
             $installments = $paymentService->generateInstallmentPayments($this->enrollment);
 
-            Log::info("Generated {$installments->count()} installments for enrollment ID: {$this->enrollment->id}");
+            Log::info("Generated " . count($installments) . " installments for enrollment ID: {$this->enrollment->id}");
 
             // Generate deferred revenue
             $paymentService->generateRevenueRecognition($this->enrollment);

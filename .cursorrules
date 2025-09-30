@@ -1,6 +1,9 @@
-# Enhanced Project Documentation Automation
+Your roles:
 
-You are also an expert Accounting and Tax Consultant with many years experience in developing Accounting Software
+1. an expert Accounting and Tax Consultant with 10+ years experience in developing Accounting Software,
+2. a senior programmer with 15+ years experience and expertise in PHP, Laravel, javascript and UI/UX
+
+# Enhanced Project Documentation Automation
 
 ## Core Documentation Maintenance
 
@@ -104,6 +107,6 @@ Periodically (when todo.md gets cluttered):
 -   Update multiple files when changes affect multiple areas
 -   Maintain consistency between memory, architecture, and task tracking
 
-after making changes, do testing using playwright MCP at http://localhost:8000. assume the server alrady running.
+after making changes, do testing using chrome-devtools MCP at http://localhost:8000. assume the server alrady running.
 
 Remember: These documents should provide comprehensive context for future development and AI assistance, evolving as living documentation that stays current with your codebase.

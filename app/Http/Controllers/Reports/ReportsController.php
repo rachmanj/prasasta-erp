@@ -35,6 +35,16 @@ class ReportsController extends Controller
         return view('reports.gl-detail', compact('projects', 'funds', 'departments'));
     }
 
+    public function profitLoss(Request $request)
+    {
+        if ($request->wantsJson()) {
+            $filters = $request->only(['from', 'to']);
+            $data = $this->service->getProfitLoss($filters);
+            return response()->json($data);
+        }
+        return view('reports.profit-loss');
+    }
+
     public function arAging(Request $request)
     {
         $asOf = $request->query('as_of');

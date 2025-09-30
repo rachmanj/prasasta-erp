@@ -201,11 +201,12 @@
                         <td>
                             <div class="input-group input-group-sm">
                                 <input type="hidden" name="lines[${i-1}][item_account_id]" class="item-account-id" value="${data?.item_account_id || ''}">
-                                <input type="text" class="form-control item-display" placeholder="Click to select item" readonly>
-                                <div class="input-group-append">
-                                    <button type="button" class="btn btn-outline-primary btn-sm select-item-btn" title="Select Item">
-                                        <i class="fas fa-search"></i>
-                                    </button>
+                            <input type="text" class="form-control item-display" placeholder="Click to select item" readonly>
+                            <small class="text-muted item-code-name-display"></small>
+                            <div class="input-group-append">
+                                <button type="button" class="btn btn-outline-primary btn-sm select-item-btn" title="Select Item">
+                                    <i class="fas fa-search"></i>
+                                </button>
                                 </div>
                             </div>
                         </td>
@@ -236,6 +237,8 @@
                         <td>
                             <input type="number" name="lines[${i-1}][amount]" class="form-control form-control-sm amount-input" 
                                    value="${data?.amount || ''}" readonly>
+                            <input type="hidden" name="lines[${i-1}][vat_amount]" value="${data?.vat_amount || '0.00'}">
+                            <input type="hidden" name="lines[${i-1}][wtax_amount]" value="${data?.wtax_amount || '0.00'}">
                         </td>
                         <td class="text-center">
                             <button type="button" class="btn btn-sm btn-danger rm" title="Remove line">
@@ -344,6 +347,8 @@
                         <td>
                             <input type="number" name="lines[${i-1}][amount]" class="form-control form-control-sm amount-input" 
                                    value="${data?.amount || ''}" readonly>
+                            <input type="hidden" name="lines[${i-1}][vat_amount]" value="${data?.vat_amount || '0.00'}">
+                            <input type="hidden" name="lines[${i-1}][wtax_amount]" value="${data?.wtax_amount || '0.00'}">
                         </td>
                         <td class="text-center">
                             <button type="button" class="btn btn-sm btn-danger rm" title="Remove line">

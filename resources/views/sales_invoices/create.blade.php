@@ -380,12 +380,13 @@
                     <td>
                         <div class="input-group input-group-sm">
                             <input type="hidden" name="lines[${lineIdx}][item_account_id]" class="item-account-id" value="${data?.item_account_id || ''}">
-                            <input type="text" class="form-control item-display" placeholder="Click to select item" readonly>
-                            <div class="input-group-append">
-                                <button type="button" class="btn btn-outline-primary btn-sm select-item-btn" title="Select Item">
-                                    <i class="fas fa-search"></i>
-                                </button>
-                            </div>
+                        <input type="text" class="form-control item-display" placeholder="Click to select item" readonly>
+                        <small class="text-muted item-code-name-display"></small>
+                        <div class="input-group-append">
+                            <button type="button" class="btn btn-outline-primary btn-sm select-item-btn" title="Select Item">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
                         </div>
                         <input type="hidden" name="lines[${lineIdx}][item_id]" class="item-id-input" value="${data.item_id || ''}">
                         <input type="hidden" name="lines[${lineIdx}][account_id]" class="account-id-input" value="${data.account_id || ''}">
@@ -417,8 +418,8 @@
                         <input type="hidden" name="lines[${lineIdx}][wtax_amount]" class="wtax-amount-input" value="${data.wtax_amount || 0}">
                     </td>
                     <td>
-                        <input type="number" step="0.01" min="0" name="lines[${lineIdx}][amount]"
-                            class="form-control form-control-sm text-right amount-input" value="${data.amount || 0}" readonly>
+                        <div class="amount-display text-right font-weight-bold">Rp 0,00</div>
+                        <input type="hidden" name="lines[${lineIdx}][amount]" class="amount-input" value="${data.amount || 0}">
                     </td>
                     <td class="text-center">
                         <button type="button" class="btn btn-xs btn-danger rm">

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 use App\Models\CourseCategory;
+use App\Exports\CourseProfitabilityExport;
 
 class CourseFinancialReportController extends Controller
 {
@@ -41,6 +42,51 @@ class CourseFinancialReportController extends Controller
         return view('reports.course-financial.payment-collection', compact('categories'));
     }
 
+    public function exportCourseProfitability(Request $request)
+    {
+        try {
+            $startDate = $request->get('start_date');
+            $endDate = $request->get('end_date');
+            $categoryId = $request->get('category_id');
+
+            $filename = 'Course_Profitability_Report_' . date('Y-m-d_H-i-s') . '.csv';
+
+            $export = new CourseProfitabilityExport($startDate, $endDate, $categoryId);
+            $data = $export->getData();
+            $headings = $export->getHeadings();
+
+            $csvData = [];
+            $csvData[] = $headings;
+
+            foreach ($data as $row) {
+                $csvData[] = $export->mapRow($row);
+            }
+
+            $callback = function () use ($csvData) {
+                $file = fopen('php://output', 'w');
+
+                // Add UTF-8 BOM for proper encoding
+                fwrite($file, "\xEF\xBB\xBF");
+
+                foreach ($csvData as $row) {
+                    fputcsv($file, $row);
+                }
+
+                fclose($file);
+            };
+
+            return response()->stream($callback, 200, [
+                'Content-Type' => 'text/csv; charset=UTF-8',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                'Pragma' => 'no-cache',
+                'Expires' => '0'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to export data: ' . $e->getMessage()], 500);
+        }
+    }
+
     public function getCourseProfitabilityData(Request $request)
     {
         $query = DB::table('courses as c')
@@ -62,7 +108,10 @@ class CourseFinancialReportController extends Controller
                 DB::raw('SUM(e.total_amount) as total_revenue'),
                 DB::raw('SUM(rr.amount) as recognized_revenue'),
                 DB::raw('AVG(cb.capacity) as avg_capacity'),
-                DB::raw('COUNT(DISTINCT e.id) / COUNT(DISTINCT cb.id) as avg_enrollments_per_batch')
+                DB::raw('COUNT(DISTINCT e.id) / COUNT(DISTINCT cb.id) as avg_enrollments_per_batch'),
+                DB::raw('MAX(rr.recognition_date) as latest_recognition_date'),
+                DB::raw('COUNT(DISTINCT CASE WHEN rr.id IS NOT NULL THEN e.id END) as enrollments_with_recognition'),
+                DB::raw('COUNT(DISTINCT CASE WHEN cb.status = "ongoing" OR cb.status = "completed" THEN cb.id END) as active_batches')
             ])
             ->where('c.status', 'active')
             ->groupBy('c.id', 'c.code', 'c.name', 'cc.name', 'c.base_price');
@@ -82,6 +131,27 @@ class CourseFinancialReportController extends Controller
                 $deferred = $row->total_revenue - $row->recognized_revenue;
                 return 'Rp ' . number_format($deferred, 0, ',', '.');
             })
+            ->addColumn('recognition_status', function ($row) {
+                if ($row->total_enrollments == 0) {
+                    return '<span class="badge badge-secondary">No Enrollments</span>';
+                }
+
+                $recognitionPercentage = $row->total_enrollments > 0 ?
+                    ($row->enrollments_with_recognition / $row->total_enrollments) * 100 : 0;
+
+                if ($recognitionPercentage == 100) {
+                    return '<span class="badge badge-success">Fully Recognized</span>';
+                } elseif ($recognitionPercentage > 0) {
+                    return '<span class="badge badge-warning">Partially Recognized</span>';
+                } else {
+                    return '<span class="badge badge-danger">Not Recognized</span>';
+                }
+            })
+            ->addColumn('recognition_date', function ($row) {
+                return $row->latest_recognition_date ?
+                    date('d/m/Y', strtotime($row->latest_recognition_date)) :
+                    '-';
+            })
             ->addColumn('total_revenue_formatted', function ($row) {
                 return 'Rp ' . number_format($row->total_revenue, 0, ',', '.');
             })
@@ -91,6 +161,7 @@ class CourseFinancialReportController extends Controller
             ->addColumn('base_price_formatted', function ($row) {
                 return 'Rp ' . number_format($row->base_price, 0, ',', '.');
             })
+            ->rawColumns(['recognition_status'])
             ->make(true);
     }
 

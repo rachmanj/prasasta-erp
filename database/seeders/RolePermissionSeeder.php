@@ -230,6 +230,8 @@ class RolePermissionSeeder extends Seeder
                 'course_categories.view',
                 'course_batches.view',
                 'course_batches.create',
+                'course_batches.update',
+                'course_batches.delete',
                 'enrollments.view',
                 'course_financial_reports.view',
                 'course_financial_reports.profitability',

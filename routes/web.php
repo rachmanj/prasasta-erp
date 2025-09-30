@@ -158,6 +158,7 @@ Route::middleware('auth')->group(function () {
             Route::post('/', [CourseBatchController::class, 'store'])->name('course-batches.store');
             Route::get('/{courseBatch}/edit', [CourseBatchController::class, 'edit'])->name('course-batches.edit');
             Route::patch('/{courseBatch}', [CourseBatchController::class, 'update'])->name('course-batches.update');
+            Route::post('/{courseBatch}/start', [CourseBatchController::class, 'start'])->name('course-batches.start');
             Route::delete('/{courseBatch}', [CourseBatchController::class, 'destroy'])->name('course-batches.destroy');
         });
 
@@ -264,6 +265,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/outstanding-receivables', [CourseFinancialReportController::class, 'outstandingReceivables'])->name('reports.course-financial.outstanding-receivables');
             Route::get('/payment-collection', [CourseFinancialReportController::class, 'paymentCollection'])->name('reports.course-financial.payment-collection');
             Route::get('/profitability/data', [CourseFinancialReportController::class, 'getCourseProfitabilityData'])->name('reports.course-financial.profitability.data');
+            Route::get('/profitability/export', [CourseFinancialReportController::class, 'exportCourseProfitability'])->name('reports.course-financial.profitability.export');
             Route::get('/outstanding-receivables/data', [CourseFinancialReportController::class, 'getOutstandingReceivablesData'])->name('reports.course-financial.outstanding-receivables.data');
         });
 

@@ -3,6 +3,7 @@
         $accountingActive =
             request()->routeIs('reports.trial-balance') ||
             request()->routeIs('reports.gl-detail') ||
+            request()->routeIs('reports.profit-loss') ||
             request()->routeIs('reports.cash-ledger') ||
             request()->routeIs('reports.withholding-recap');
         $salesActive = request()->routeIs('reports.ar-aging') || request()->routeIs('reports.ar-balances');
@@ -39,6 +40,13 @@
                     class="nav-link {{ request()->routeIs('reports.gl-detail') ? 'active' : '' }}">
                     <i class="far fa-circle nav-icon"></i>
                     <p>GL Detail</p>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('reports.profit-loss') }}"
+                    class="nav-link {{ request()->routeIs('reports.profit-loss') ? 'active' : '' }}">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>Profit & Loss</p>
                 </a>
             </li>
             <li class="nav-item">

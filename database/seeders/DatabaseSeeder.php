@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             SampleUsersSeeder::class,
             TermsSeeder::class,
-            TrainingDataSeeder::class,
+            // TrainingDataSeeder::class,
             // TrainingScenariosSeeder::class,
             // TrainingAssessmentSeeder::class,
         ]);

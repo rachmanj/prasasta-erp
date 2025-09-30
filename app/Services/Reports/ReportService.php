@@ -364,4 +364,82 @@ class ReportService
             ],
         ];
     }
+
+    public function getProfitLoss(array $filters = []): array
+    {
+        // Default to current month if no dates provided
+        $from = $filters['from'] ?? now()->startOfMonth()->toDateString();
+        $to = $filters['to'] ?? now()->endOfMonth()->toDateString();
+
+        // Get income accounts and their balances
+        $incomeData = DB::table('journal_lines as jl')
+            ->join('journals as j', 'j.id', '=', 'jl.journal_id')
+            ->join('accounts as a', 'a.id', '=', 'jl.account_id')
+            ->where('a.type', 'income')
+            ->where('j.status', 'posted')
+            ->whereDate('j.date', '>=', $from)
+            ->whereDate('j.date', '<=', $to)
+            ->select('a.id', 'a.code', 'a.name', 'a.type', DB::raw('SUM(jl.credit - jl.debit) as amount'))
+            ->groupBy('a.id', 'a.code', 'a.name', 'a.type')
+            ->having('amount', '>', 0)
+            ->orderBy('a.code')
+            ->get();
+
+        // Get expense accounts and their balances  
+        $expenseData = DB::table('journal_lines as jl')
+            ->join('journals as j', 'j.id', '=', 'jl.journal_id')
+            ->join('accounts as a', 'a.id', '=', 'jl.account_id')
+            ->where('a.type', 'expense')
+            ->where('j.status', 'posted')
+            ->whereDate('j.date', '>=', $from)
+            ->whereDate('j.date', '<=', $to)
+            ->select('a.id', 'a.code', 'a.name', 'a.type', DB::raw('SUM(jl.debit - jl.credit) as amount'))
+            ->groupBy('a.id', 'a.code', 'a.name', 'a.type')
+            ->having('amount', '>', 0)
+            ->orderBy('a.code')
+            ->get();
+
+        // Format income and expense data
+        $incomeRows = $incomeData->map(function ($row) {
+            return [
+                'account_id' => (int) $row->id,
+                'code' => $row->code,
+                'name' => $row->name,
+                'amount' => round((float) $row->amount, 2),
+            ];
+        })->toArray();
+
+        $expenseRows = $expenseData->map(function ($row) {
+            return [
+                'account_id' => (int) $row->id,
+                'code' => $row->code,
+                'name' => $row->name,
+                'amount' => round((float) $row->amount, 2),
+            ];
+        })->toArray();
+
+        // Calculate totals
+        $totalIncome = array_sum(array_column($incomeRows, 'amount'));
+        $totalExpense = array_sum(array_column($expenseRows, 'amount'));
+        $netProfit = $totalIncome - $totalExpense;
+
+        return [
+            'filters' => $filters,
+            'period' => ['from' => $from, 'to' => $to],
+            'income' => [
+                'rows' => $incomeRows,
+                'total' => round($totalIncome, 2),
+            ],
+            'expense' => [
+                'rows' => $expenseRows,
+                'total' => round($totalExpense, 2),
+            ],
+            'summary' => [
+                'total_income' => round($totalIncome, 2),
+                'total_expense' => round($totalExpense, 2),
+                'net_profit' => round($netProfit, 2),
+                'profit_margin' => $totalIncome > 0 ? round(($netProfit / $totalIncome) * 100, 2) : 0,
+            ],
+        ];
+    }
 }

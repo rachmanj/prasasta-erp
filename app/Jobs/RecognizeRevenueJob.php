@@ -3,7 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\CourseBatch;
-use App\Services\PaymentProcessingService;
+use App\Services\CourseAccountingService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -28,9 +28,11 @@ class RecognizeRevenueJob implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(PaymentProcessingService $paymentService): void
+    public function handle(CourseAccountingService $courseAccountingService): void
     {
         try {
+            Log::info("Starting revenue recognition for batch ID: {$this->batch->id} - {$this->batch->batch_code}");
+
             // Check if batch has already had revenue recognized
             $existingRecognitions = $this->batch->enrollments()
                 ->whereHas('revenueRecognitions', function ($query) {
@@ -44,10 +46,33 @@ class RecognizeRevenueJob implements ShouldQueue
                 return;
             }
 
-            // Recognize revenue for all enrollments in this batch
-            $recognitions = $paymentService->recognizeRevenueForBatch($this->batch);
+            // Get all enrollments for this batch
+            $enrollments = $this->batch->enrollments()->where('status', 'enrolled')->get();
 
-            Log::info("Recognized revenue for {$recognitions->count()} enrollments in batch ID: {$this->batch->id}");
+            if ($enrollments->isEmpty()) {
+                Log::info("No enrollments found for batch ID: {$this->batch->id}");
+                return;
+            }
+
+            $recognizedCount = 0;
+            $totalAmount = 0;
+
+            // Recognize revenue for each enrollment
+            foreach ($enrollments as $enrollment) {
+                try {
+                    $result = $courseAccountingService->recognizeRevenue($enrollment, $this->batch->start_date);
+
+                    if ($result) {
+                        $recognizedCount++;
+                        $totalAmount += $enrollment->total_amount;
+                        Log::info("Recognized revenue for enrollment ID: {$enrollment->id}, Amount: Rp " . number_format($enrollment->total_amount, 0, ',', '.'));
+                    }
+                } catch (\Exception $e) {
+                    Log::error("Failed to recognize revenue for enrollment ID: {$enrollment->id}. Error: " . $e->getMessage());
+                }
+            }
+
+            Log::info("Revenue recognition completed for batch ID: {$this->batch->id}. Recognized: {$recognizedCount} enrollments, Total Amount: Rp " . number_format($totalAmount, 0, ',', '.'));
         } catch (\Exception $e) {
             Log::error("Failed to recognize revenue for batch ID: {$this->batch->id}. Error: " . $e->getMessage());
             throw $e;

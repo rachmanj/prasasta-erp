@@ -245,6 +245,7 @@
                             <div class="input-group input-group-sm">
                                 <input type="hidden" name="lines[${i-1}][item_account_id]" class="item-account-id" value="${data?.item_account_id || ''}">
                                 <input type="text" class="form-control item-display" placeholder="Click to select item" readonly>
+                                <small class="text-muted item-code-name-display"></small>
                                 <div class="input-group-append">
                                     <button type="button" class="btn btn-outline-primary btn-sm select-item-btn" title="Select Item">
                                         <i class="fas fa-search"></i>
@@ -277,8 +278,10 @@
                             </select>
                         </td>
                         <td>
-                            <input type="number" name="lines[${i-1}][amount]" class="form-control form-control-sm amount-input" 
-                                   value="${data?.amount || ''}" readonly>
+                            <div class="amount-display text-right font-weight-bold">Rp 0,00</div>
+                            <input type="hidden" name="lines[${i-1}][amount]" class="amount-input" value="${data?.amount || ''}">
+                            <input type="hidden" name="lines[${i-1}][vat_amount]" value="${data?.vat_amount || '0.00'}">
+                            <input type="hidden" name="lines[${i-1}][wtax_amount]" value="${data?.wtax_amount || '0.00'}">
                         </td>
                         <td class="text-center">
                             <button type="button" class="btn btn-sm btn-danger rm" title="Remove line">
@@ -322,7 +325,8 @@
                     if (lineType === 'item') {
                         window.itemSelector.open(function(item) {
                             row.find('.item-account-id').val(item.id);
-                            row.find('.item-display').val(`${item.code} - ${item.name}`);
+                            row.find('.item-display').val(item.name);
+                            row.find('.item-code-name-display').text(`${item.code} - ${item.name}`);
                             row.find('.description-input').val(item.description || item.name);
                             row.find('.price-input').val(item.last_cost_price || 0);
                             updateLineAmount(row);
@@ -385,8 +389,10 @@
                             </select>
                         </td>
                         <td>
-                            <input type="number" name="lines[${i-1}][amount]" class="form-control form-control-sm amount-input" 
-                                   value="${data?.amount || ''}" readonly>
+                            <div class="amount-display text-right font-weight-bold">Rp 0,00</div>
+                            <input type="hidden" name="lines[${i-1}][amount]" class="amount-input" value="${data?.amount || ''}">
+                            <input type="hidden" name="lines[${i-1}][vat_amount]" value="${data?.vat_amount || '0.00'}">
+                            <input type="hidden" name="lines[${i-1}][wtax_amount]" value="${data?.wtax_amount || '0.00'}">
                         </td>
                         <td class="text-center">
                             <button type="button" class="btn btn-sm btn-danger rm" title="Remove line">
@@ -520,6 +526,12 @@
                 const totalAmount = originalAmount + vatAmount - wtaxAmount;
 
                 row.find('.amount-input').val(totalAmount.toFixed(2));
+
+                // Update display with Indonesia currency formatting
+                row.find('.amount-display').text(`Rp ${totalAmount.toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                })}`);
 
                 // Store calculated values for form submission
                 row.find('input[name*="[vat_amount]"]').val(vatAmount.toFixed(2));

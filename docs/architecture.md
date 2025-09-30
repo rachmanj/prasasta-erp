@@ -1,5 +1,5 @@
 Purpose: Technical reference for understanding system design and development patterns
-Last Updated: 2025-09-26 (Updated with Modal-Based Item Selection System)
+Last Updated: 2025-01-29 (Updated with Course Integration Testing Progress)
 
 ## Architecture Documentation Guidelines
 
@@ -912,7 +912,7 @@ The ERP system has undergone comprehensive testing using interactive scenarios a
 
 ## Course Management System (Implemented)
 
-**Status**: Phase 1-3 Complete + Comprehensive Testing - Full Accounting Integration with Financial Reporting, Cost Management, Event-Driven Architecture, and Complete Test Suite operational
+**Status**: Phase 1-3 Complete + Comprehensive Testing + Revenue Recognition + Export Functionality - Full Accounting Integration with Financial Reporting, Cost Management, Event-Driven Architecture, Revenue Recognition System, CSV Export, and Complete Test Suite operational
 
 ### Current Implementation (Phase 1-3 Complete)
 
@@ -973,7 +973,11 @@ The ERP system has undergone comprehensive testing using interactive scenarios a
 -   `CourseBatchController`: Batch management with capacity tracking
 -   `EnrollmentController`: Student enrollment with automatic accounting triggers
 -   `InstallmentPaymentController`: Payment processing with accounting integration
--   `CourseFinancialReportController`: Comprehensive financial reporting
+-   `CourseFinancialReportController`: Comprehensive financial reporting with CSV export functionality
+    -   `getCourseProfitabilityData()`: Enhanced with revenue recognition tracking (latest_recognition_date, enrollments_with_recognition, active_batches)
+    -   `exportCourseProfitability()`: CSV export with filtered data, professional filename generation, UTF-8 encoding
+    -   Recognition status indicators: Fully Recognized, Partially Recognized, Not Recognized
+    -   Recognition date tracking and deferred revenue calculations
 -   `CourseAccountingService`: Core accounting integration service
 -   `CourseCostManagementService`: Cost tracking and profitability analysis
 -   `PaymentProcessingService`: Installment generation and processing
@@ -982,6 +986,7 @@ The ERP system has undergone comprehensive testing using interactive scenarios a
 
 -   Course management routes with proper middleware
 -   Financial report routes with permission-based access
+-   CSV export routes with filtered data support
 -   DataTables integration for all listing views
 
 **Permissions (Implemented)**
@@ -1065,7 +1070,22 @@ The ERP system has undergone comprehensive testing using interactive scenarios a
 -   Email notifications for completed reports
 -   Multiple export formats (PDF, Excel, CSV) with professional formatting
 
-**Background Job Integration**
+**Revenue Recognition System (Implemented)**
+
+-   `RecognizeRevenueJob`: Automatic revenue recognition job dispatched when course batch starts
+-   `BatchStarted` Event: Triggered when course batch status changes to 'ongoing'
+-   `BatchStartedListener`: Handles BatchStarted event and dispatches RecognizeRevenueJob
+-   Manual Batch Start Controls: Course batch controller with start method and validation
+-   Revenue Recognition Tracking: revenue_recognitions table with enrollment_id, batch_id, recognition_date, amount, type, journal_entry_id, is_posted
+
+**Export Functionality (Implemented)**
+
+-   CSV Export System: CourseProfitabilityExport class with comprehensive data processing
+-   Professional Filename Generation: Course_Profitability_Report_YYYY-MM-DD_HH-MM-SS.csv format
+-   UTF-8 Encoding: Proper character encoding with BOM for international characters
+-   Filtered Export: Respects current date range and category filters
+-   Error Handling: Comprehensive error handling with user-friendly messages
+-   Network Monitoring: Chrome DevTools integration for export validation
 
 -   Queue-based report generation for improved performance
 -   Email notification system for completed reports
@@ -1243,3 +1263,89 @@ graph TD
 -   Comprehensive error handling
 
 **Total Implementation**: Complete - Banking Module fully operational and production-ready
+
+## Testing Architecture
+
+### Chrome DevTools MCP Integration
+
+**Browser Automation Testing** ✅ IMPLEMENTED
+
+The system uses Chrome DevTools MCP for comprehensive browser-based testing:
+
+-   **Real-time Form Interaction**: Direct form filling and validation testing
+-   **Network Request Monitoring**: API endpoint validation and debugging
+-   **Console Error Detection**: JavaScript error identification and resolution
+-   **Dynamic Form Population**: Automatic dropdown population when data is missing
+-   **UI/UX Validation**: Complete user interface testing across all modules
+
+**Testing Workflow**:
+
+1. **Environment Setup**: Verify test data availability and authentication
+2. **Browser Navigation**: Navigate to target pages using Chrome DevTools MCP
+3. **Form Interaction**: Fill forms, submit data, validate responses
+4. **Database Validation**: Use MySQL MCP for direct database queries
+5. **Error Resolution**: Fix issues identified during testing
+6. **Documentation**: Update test results and findings
+
+### MySQL MCP Integration
+
+**Database-First Testing** ✅ IMPLEMENTED
+
+Direct database access for testing and validation:
+
+-   **Query Execution**: Direct SQL queries for data verification
+-   **Schema Validation**: Table structure and relationship verification
+-   **Data Integrity**: Transaction and journal entry validation
+-   **Performance Testing**: Query execution time and optimization
+-   **Real-time Debugging**: Immediate database state inspection
+
+**Testing Capabilities**:
+
+-   Journal entry verification with proper double-entry bookkeeping
+-   Indonesian tax calculation validation (PPN 11%)
+-   Event-driven architecture testing (queue workers, listeners)
+-   Revenue recognition workflow validation
+-   Course-accounting integration testing
+
+### Course Integration Testing Status
+
+**Scenario 1 - Course Enrollment Workflow** ✅ COMPLETED
+
+-   **Enrollment Creation**: Successfully tested PT Maju Bersama enrollment in Digital Marketing Fundamentals
+-   **Journal Entry Generation**: Validated proper accounting entries (AR, Deferred Revenue, PPN Output)
+-   **Event-Driven Integration**: Confirmed automatic journal posting via CourseAccountingService
+-   **Tax Compliance**: Verified Indonesian PPN 11% calculations
+-   **Database Persistence**: Confirmed data integrity and relationships
+
+**Scenario 2 - Payment Processing Workflow** ⚠️ IN PROGRESS
+
+-   **Installment Generation**: Fixed GenerateInstallmentsJob array vs collection issue
+-   **Payment Creation**: Successfully created 5 installment payments
+-   **Revenue Recognition**: Investigating queue worker execution for revenue recognition
+-   **Workflow Dependencies**: Identifying missing table triggers and queue processing
+
+**Critical Issues Resolved**:
+
+-   **Student Dropdown Population**: Fixed customers vs students endpoint mismatch
+-   **GenerateInstallmentsJob Bug**: Resolved array count() vs Collection::count() issue
+-   **Form Validation**: Dynamic form population when dropdowns are empty
+-   **Database Schema**: Verified revenue_recognitions table structure and relationships
+
+### Testing Infrastructure
+
+**MCP Integration Benefits**:
+
+-   **Superior Form Testing**: Chrome DevTools MCP provides better form interaction than unit tests
+-   **Real-time Debugging**: Immediate identification and resolution of issues
+-   **Database Validation**: Direct database queries for faster debugging
+-   **Event-Driven Testing**: Queue worker execution for complex workflows
+-   **Production Simulation**: Browser-based testing mirrors actual user experience
+
+**Testing Methodology**:
+
+1. **Prerequisites Verification**: Test data seeding and authentication
+2. **Browser Automation**: Chrome DevTools MCP for form interaction
+3. **Database Validation**: MySQL MCP for data verification
+4. **Issue Resolution**: Fix critical bugs identified during testing
+5. **Documentation**: Update progress and findings
+6. **Continuous Testing**: Iterative testing approach for complex workflows

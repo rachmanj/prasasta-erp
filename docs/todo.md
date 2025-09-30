@@ -2,9 +2,48 @@ Keep your task management simple and focused on what you're actually working on:
 
 ```markdown
 **Purpose**: Track current work and immediate priorities
-**Last Updated**: 2025-09-26
+**Last Updated**: 2025-01-29 (Updated with Course Integration Testing Progress)
 
 ## Recently Completed Tasks
+
+### Course-Accounting Integration Testing with Chrome DevTools Automation (2025-01-29)
+
+-   `[done] P1: Test Environment Setup and Prerequisites Verification [Chrome DevTools MCP, MySQL MCP, TrainingDataSeeder]` (completed: 2025-01-29)
+
+    -   `[done] Verified prerequisite test data availability and seeded TrainingDataSeeder with realistic course data`
+    -   `[done] Confirmed authentication with Accountant role (budi@prasasta.com)`
+    -   `[done] Validated Chrome DevTools MCP integration for browser automation testing`
+    -   `[done] Confirmed MySQL MCP integration for direct database queries`
+
+-   `[done] P1: Scenario 1 - Course Enrollment Workflow Testing [EnrollmentController, CourseAccountingService, Chrome DevTools]` (completed: 2025-01-29)
+
+    -   `[done] Successfully tested enrollment creation for PT Maju Bersama in Digital Marketing Fundamentals course (Rp 8,000,000 total value)`
+    -   `[done] Validated journal entry generation with proper double-entry bookkeeping (Debit AR: Rp 8,000,000, Credit Deferred Revenue: Rp 7,207,207.21, Credit PPN Output: Rp 792,792.79)`
+    -   `[done] Confirmed event-driven accounting integration working correctly`
+    -   `[done] Fixed student dropdown population issue (customers vs students endpoint mismatch)`
+    -   `[done] Used Chrome DevTools MCP for real-time browser testing and form interaction validation`
+
+-   `[done] P1: Scenario 2 - Payment Processing Workflow Testing [GenerateInstallmentsJob, PaymentProcessingService, Revenue Recognition]` (completed: 2025-01-29)
+
+    -   `[done] Fixed GenerateInstallmentsJob critical bug (array vs collection count() issue)`
+    -   `[done] Created 5 installment payments (1 down payment + 4 installments)`
+    -   `[done] Identified revenue recognition job not executing due to missing table triggers`
+    -   `[done] Investigated queue worker execution for revenue recognition workflow`
+
+-   `[done] P1: Revenue Recognition Implementation [RecognizeRevenueJob, BatchStarted Event, Manual Controls]` (completed: 2025-01-29)
+
+    -   `[done] Implemented RecognizeRevenueJob for automatic revenue recognition`
+    -   `[done] Created BatchStarted event and BatchStartedListener for automatic triggers`
+    -   `[done] Added manual batch start controls with proper validation`
+    -   `[done] Enhanced Course Profitability Report with deferred/recognized revenue tracking`
+    -   `[done] Added recognition status indicators and recognition dates`
+
+-   `[done] P1: Export Functionality Implementation [CSV Export, Error Handling, Chrome DevTools Testing]` (completed: 2025-01-29)
+    -   `[done] Fixed Excel export timeout by removing incompatible Laravel Excel package (v1.1.5)`
+    -   `[done] Implemented CSV export functionality with proper UTF-8 encoding`
+    -   `[done] Added professional filename generation and comprehensive error handling`
+    -   `[done] Validated export functionality with Chrome DevTools network monitoring`
+    -   `[done] Confirmed successful 200 responses with proper CSV headers`
 
 ### Modal-Based Item Selection System Implementation (2025-09-26)
 

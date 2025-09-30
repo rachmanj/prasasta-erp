@@ -30,30 +30,70 @@ Prasasta ERP is a comprehensive enterprise resource planning system designed spe
 
 ### Key Benefits
 
-- **Financial Control**: Complete double-entry accounting with automated journal posting
-- **Asset Management**: Track fixed assets from acquisition to disposal with automated depreciation
-- **Compliance**: Indonesian tax compliance (PPN, PPh withholding tax, SAK standards) and regulatory reporting
-- **Multi-dimensional Tracking**: Projects, funds, and departments for detailed cost analysis
-- **Audit Trail**: Complete history of all transactions and changes
-- **Role-based Security**: Granular permissions ensuring data security
+-   **Financial Control**: Complete double-entry accounting with automated journal posting
+-   **Asset Management**: Track fixed assets from acquisition to disposal with automated depreciation
+-   **Compliance**: Indonesian tax compliance (PPN, PPh withholding tax, SAK standards) and regulatory reporting
+-   **Multi-dimensional Tracking**: Projects, funds, and departments for detailed cost analysis
+-   **Audit Trail**: Complete history of all transactions and changes
+-   **Role-based Security**: Granular permissions ensuring data security
 
 ### System Architecture
 
-- **Backend**: Laravel 12 with MySQL database
-- **Frontend**: AdminLTE 3 responsive interface
-- **Security**: Spatie Laravel Permission for role-based access control
-- **Reporting**: Built-in reports with CSV/PDF export capabilities
+-   **Backend**: Laravel 12 with MySQL database
+-   **Frontend**: AdminLTE 3 responsive interface
+-   **Security**: Spatie Laravel Permission for role-based access control
+-   **Reporting**: Built-in reports with CSV/PDF export capabilities
 
 ### Indonesian Accounting Standards Compliance
 
 The system is designed to comply with Indonesian Accounting Standards (Standar Akuntansi Keuangan - SAK):
 
-- **SAK-ETAP**: For entities without public accountability
-- **SAK-EMKM**: For micro, small, and medium enterprises
-- **SAK-IFRS**: For entities with public accountability
-- **Chart of Accounts**: Based on Indonesian CoA structure
-- **Tax Compliance**: PPN (VAT), PPh (Income Tax), and withholding tax calculations
-- **Reporting**: Indonesian financial statement formats
+### Revenue Recognition Principles
+
+Understanding deferred and recognized revenue is crucial for proper financial reporting:
+
+#### **Deferred Revenue (Pendapatan Ditangguhkan)**
+
+-   **Definition**: Money received in advance for services that haven't been delivered yet
+-   **Example**: Student pays Rp 8,000,000 for a course that starts next month
+-   **Accounting Treatment**: Recorded as liability until service is delivered
+-   **Journal Entry**:
+    ```
+    Debit:  Cash/Bank                    Rp 8,000,000
+    Credit: Deferred Revenue             Rp 7,207,207.21
+    Credit: PPN Output                   Rp 792,792.79
+    ```
+
+#### **Recognized Revenue (Pendapatan Diakui)**
+
+-   **Definition**: Revenue that can be recorded as earned income because the service has been delivered
+-   **Example**: Course starts, training begins - now revenue can be recognized
+-   **Accounting Treatment**: Transferred from liability to income
+-   **Journal Entry**:
+    ```
+    Debit:  Deferred Revenue             Rp 7,207,207.21
+    Credit: Course Revenue              Rp 7,207,207.21
+    ```
+
+#### **Revenue Recognition Triggers**
+
+-   **Course Start**: When batch begins (recommended)
+-   **Course Completion**: When batch ends
+-   **Proportional**: Over course duration (advanced)
+
+#### **Business Impact**
+
+-   **Cash Flow**: Immediate (when payment received)
+-   **Profit Recognition**: Only when service delivered
+-   **Tax Compliance**: PPN collected but revenue recognition follows service delivery
+-   **Financial Reporting**: Deferred revenue shows as liability until recognized
+
+-   **SAK-ETAP**: For entities without public accountability
+-   **SAK-EMKM**: For micro, small, and medium enterprises
+-   **SAK-IFRS**: For entities with public accountability
+-   **Chart of Accounts**: Based on Indonesian CoA structure
+-   **Tax Compliance**: PPN (VAT), PPh (Income Tax), and withholding tax calculations
+-   **Reporting**: Indonesian financial statement formats
 
 ---
 
@@ -65,36 +105,36 @@ The system has five main user roles, each with specific permissions:
 
 #### 1. Super Admin
 
-- **Full system access** - can perform all operations
-- **User management** - create, edit, delete users and roles
-- **System configuration** - manage all master data
-- **Reports** - access all reports and exports
+-   **Full system access** - can perform all operations
+-   **User management** - create, edit, delete users and roles
+-   **System configuration** - manage all master data
+-   **Reports** - access all reports and exports
 
 #### 2. Accountant
 
-- **Financial data entry** - create journals, invoices, receipts
-- **Master data viewing** - view customers, vendors, accounts
-- **Asset viewing** - view assets and categories
-- **Reports** - access financial reports
+-   **Financial data entry** - create journals, invoices, receipts
+-   **Master data viewing** - view customers, vendors, accounts
+-   **Asset viewing** - view assets and categories
+-   **Reports** - access financial reports
 
 #### 3. Approver
 
-- **Transaction approval** - post journals and transactions
-- **Asset operations** - run depreciation, approve disposals
-- **Movement approval** - approve asset transfers
-- **Reports** - access management reports
+-   **Transaction approval** - post journals and transactions
+-   **Asset operations** - run depreciation, approve disposals
+-   **Movement approval** - approve asset transfers
+-   **Reports** - access management reports
 
 #### 4. Cashier
 
-- **Cash operations** - create receipts and payments
-- **Journal creation** - basic journal entries
-- **Reports** - view cash-related reports
+-   **Cash operations** - create receipts and payments
+-   **Journal creation** - basic journal entries
+-   **Reports** - view cash-related reports
 
 #### 5. Auditor
 
-- **Read-only access** - view all reports and data
-- **Audit trail** - access complete transaction history
-- **No modification rights** - cannot change any data
+-   **Read-only access** - view all reports and data
+-   **Audit trail** - access complete transaction history
+-   **No modification rights** - cannot change any data
 
 ### Permission Matrix
 
@@ -120,27 +160,27 @@ The General Ledger is the foundation of the accounting system. All financial tra
 
 #### Key Concepts
 
-- **Chart of Accounts**: Organized list of all accounts following Indonesian CoA structure (Assets, Liabilities, Net Assets, Income, Expenses)
-- **Journal Entries**: Records of financial transactions with debit and credit amounts
-- **Balancing**: Every journal entry must have equal total debits and credits
-- **Dimensions**: Projects, Funds, Departments for detailed tracking
-- **Indonesian Standards**: All transactions must comply with SAK (Standar Akuntansi Keuangan)
+-   **Chart of Accounts**: Organized list of all accounts following Indonesian CoA structure (Assets, Liabilities, Net Assets, Income, Expenses)
+-   **Journal Entries**: Records of financial transactions with debit and credit amounts
+-   **Balancing**: Every journal entry must have equal total debits and credits
+-   **Dimensions**: Projects, Funds, Departments for detailed tracking
+-   **Indonesian Standards**: All transactions must comply with SAK (Standar Akuntansi Keuangan)
 
 #### How to Create a Journal Entry
 
 1. **Navigate**: Go to Journals → Create New Journal
 2. **Basic Information**:
 
-   - Date: Transaction date
-   - Description: Brief description of the transaction
-   - Journal Number: Auto-generated (JNL-YYYYMM-######)
+    - Date: Transaction date
+    - Description: Brief description of the transaction
+    - Journal Number: Auto-generated (JNL-YYYYMM-######)
 
 3. **Add Journal Lines**:
 
-   - Account: Select from Chart of Accounts
-   - Debit/Credit: Enter amount (only one per line)
-   - Dimensions: Optional - Project, Fund, Department
-   - Memo: Additional details
+    - Account: Select from Chart of Accounts
+    - Debit/Credit: Enter amount (only one per line)
+    - Dimensions: Optional - Project, Fund, Department
+    - Memo: Additional details
 
 4. **Balance Check**: System shows running balance
 5. **Save**: Save as draft or post immediately
@@ -162,28 +202,28 @@ AR manages money owed to your organization by customers. It tracks invoices, pay
 
 #### Key Components
 
-- **Sales Orders**: Customer purchase requests
-- **Sales Invoices**: Bills sent to customers (must include PPN if applicable)
-- **Sales Receipts**: Customer payments received
-- **Aging Reports**: Outstanding balances by customer
-- **Tax Compliance**: PPN Output (VAT on sales) and PPh withholding tax
+-   **Sales Orders**: Customer purchase requests
+-   **Sales Invoices**: Bills sent to customers (must include PPN if applicable)
+-   **Sales Receipts**: Customer payments received
+-   **Aging Reports**: Outstanding balances by customer
+-   **Tax Compliance**: PPN Output (VAT on sales) and PPh withholding tax
 
 #### Sales Invoice Process
 
 1. **Create Sales Invoice**:
 
-   - Customer: Select from customer list
-   - Date: Invoice date
-   - Due Date: Payment due date
-   - Terms: Payment terms (e.g., Net 30)
+    - Customer: Select from customer list
+    - Date: Invoice date
+    - Due Date: Payment due date
+    - Terms: Payment terms (e.g., Net 30)
 
 2. **Add Invoice Lines**:
 
-   - Account: Revenue account
-   - Description: Service/product description
-   - Quantity: Number of units
-   - Unit Price: Price per unit
-   - Tax Code: PPN Output if applicable
+    - Account: Revenue account
+    - Description: Service/product description
+    - Quantity: Number of units
+    - Unit Price: Price per unit
+    - Tax Code: PPN Output if applicable
 
 3. **Review Totals**: System calculates subtotal, tax, and total
 4. **Save**: Save as draft
@@ -193,15 +233,15 @@ AR manages money owed to your organization by customers. It tracks invoices, pay
 
 1. **Create Sales Receipt**:
 
-   - Customer: Select customer
-   - Date: Payment date
-   - Amount: Payment amount
+    - Customer: Select customer
+    - Date: Payment date
+    - Amount: Payment amount
 
 2. **Allocate to Invoices**:
 
-   - Select invoices to apply payment
-   - Allocate payment amounts
-   - System calculates remaining balance
+    - Select invoices to apply payment
+    - Allocate payment amounts
+    - System calculates remaining balance
 
 3. **Post**: Creates journal entry (Dr Cash, Cr AR)
 
@@ -213,28 +253,28 @@ AP manages money your organization owes to vendors. It tracks purchase orders, i
 
 #### Key Components
 
-- **Purchase Orders**: Orders placed with vendors
-- **Purchase Invoices**: Bills received from vendors (must include PPN if applicable)
-- **Purchase Payments**: Payments made to vendors
-- **Aging Reports**: Outstanding balances by vendor
-- **Tax Compliance**: PPN Input (VAT on purchases) and PPh withholding tax
+-   **Purchase Orders**: Orders placed with vendors
+-   **Purchase Invoices**: Bills received from vendors (must include PPN if applicable)
+-   **Purchase Payments**: Payments made to vendors
+-   **Aging Reports**: Outstanding balances by vendor
+-   **Tax Compliance**: PPN Input (VAT on purchases) and PPh withholding tax
 
 #### Purchase Invoice Process
 
 1. **Create Purchase Invoice**:
 
-   - Vendor: Select from vendor list
-   - Date: Invoice date
-   - Due Date: Payment due date
-   - Reference: PO number if applicable
+    - Vendor: Select from vendor list
+    - Date: Invoice date
+    - Due Date: Payment due date
+    - Reference: PO number if applicable
 
 2. **Add Invoice Lines**:
 
-   - Account: Expense or asset account
-   - Description: Service/product description
-   - Quantity: Number of units
-   - Unit Price: Price per unit
-   - Tax Code: PPN Input if applicable
+    - Account: Expense or asset account
+    - Description: Service/product description
+    - Quantity: Number of units
+    - Unit Price: Price per unit
+    - Tax Code: PPN Input if applicable
 
 3. **Review Totals**: System calculates subtotal, tax, and total
 4. **Save**: Save as draft
@@ -244,15 +284,15 @@ AP manages money your organization owes to vendors. It tracks purchase orders, i
 
 1. **Create Purchase Payment**:
 
-   - Vendor: Select vendor
-   - Date: Payment date
-   - Amount: Payment amount
+    - Vendor: Select vendor
+    - Date: Payment date
+    - Amount: Payment amount
 
 2. **Allocate to Invoices**:
 
-   - Select invoices to pay
-   - Allocate payment amounts
-   - System calculates remaining balance
+    - Select invoices to pay
+    - Allocate payment amounts
+    - System calculates remaining balance
 
 3. **Post**: Creates journal entry (Dr AP, Cr Cash/Bank)
 
@@ -264,53 +304,53 @@ Fixed Asset Management tracks your organization's long-term assets from acquisit
 
 #### Key Components
 
-- **Asset Categories**: Grouping of similar assets (Equipment, Furniture, Vehicles)
-- **Asset Master Data**: Individual asset records
-- **Depreciation Runs**: Monthly automated depreciation calculations
-- **Asset Disposal**: Retirement and disposal of assets
-- **Asset Movement**: Transfer of assets between locations/custodians
+-   **Asset Categories**: Grouping of similar assets (Equipment, Furniture, Vehicles)
+-   **Asset Master Data**: Individual asset records
+-   **Depreciation Runs**: Monthly automated depreciation calculations
+-   **Asset Disposal**: Retirement and disposal of assets
+-   **Asset Movement**: Transfer of assets between locations/custodians
 
 #### Asset Registration Process
 
 1. **Create Asset**:
 
-   - Basic Info: Name, description, serial number
-   - Financial: Acquisition cost, purchase date, vendor
-   - Depreciation: Method, useful life, residual value
-   - Dimensions: Project, fund, department
-   - Location: Physical location and custodian
+    - Basic Info: Name, description, serial number
+    - Financial: Acquisition cost, purchase date, vendor
+    - Depreciation: Method, useful life, residual value
+    - Dimensions: Project, fund, department
+    - Location: Physical location and custodian
 
 2. **Asset Categories**:
-   - Predefined categories with default settings
-   - Each category maps to specific GL accounts
-   - Default depreciation methods and useful lives
+    - Predefined categories with default settings
+    - Each category maps to specific GL accounts
+    - Default depreciation methods and useful lives
 
 #### Depreciation Process
 
 1. **Monthly Depreciation Run**:
 
-   - System calculates depreciation for all active assets
-   - Creates journal entries automatically
-   - Updates asset book values
-   - Generates depreciation schedule
+    - System calculates depreciation for all active assets
+    - Creates journal entries automatically
+    - Updates asset book values
+    - Generates depreciation schedule
 
 2. **Depreciation Methods**:
-   - **Straight-Line**: Equal amount each period
-   - **Declining Balance**: Higher amounts in early periods
+    - **Straight-Line**: Equal amount each period
+    - **Declining Balance**: Higher amounts in early periods
 
 #### Asset Disposal Process
 
 1. **Create Disposal**:
 
-   - Asset: Select asset to dispose
-   - Disposal Date: When asset was disposed
-   - Disposal Type: Sale, scrap, donation, trade-in
-   - Proceeds: Amount received (if any)
+    - Asset: Select asset to dispose
+    - Disposal Date: When asset was disposed
+    - Disposal Type: Sale, scrap, donation, trade-in
+    - Proceeds: Amount received (if any)
 
 2. **Gain/Loss Calculation**:
-   - System calculates gain/loss automatically
-   - Book Value vs. Disposal Proceeds
-   - Creates journal entry for disposal
+    - System calculates gain/loss automatically
+    - Book Value vs. Disposal Proceeds
+    - Creates journal entry for disposal
 
 ### Module 5: Reporting & Analytics
 
@@ -331,10 +371,10 @@ The system provides comprehensive reporting capabilities for financial analysis,
 
 #### Report Features
 
-- **Date Range Selection**: Customize report periods
-- **Export Options**: CSV, PDF, Excel formats
-- **Filtering**: By account, customer, vendor, project, etc.
-- **Drill-down**: Click to see detailed transactions
+-   **Date Range Selection**: Customize report periods
+-   **Export Options**: CSV, PDF, Excel formats
+-   **Filtering**: By account, customer, vendor, project, etc.
+-   **Drill-down**: Click to see detailed transactions
 
 ---
 
@@ -357,10 +397,10 @@ The system provides comprehensive reporting capabilities for financial analysis,
 
 **Questions**:
 
-- What accounts would you use for this transaction?
-- Why is it important to assign the donation to a specific fund?
-- What happens if your debits don't equal your credits?
-- Why can't you post the journal entry yourself?
+-   What accounts would you use for this transaction?
+-   Why is it important to assign the donation to a specific fund?
+-   What happens if your debits don't equal your credits?
+-   Why can't you post the journal entry yourself?
 
 ### Scenario 2: Journal Entry Approval Workflow
 
@@ -373,20 +413,20 @@ The system provides comprehensive reporting capabilities for financial analysis,
 2. Review pending journal entries in DRAFT status
 3. Select the donation journal entry created by the accountant
 4. Review the journal details:
-   - Verify debits equal credits
-   - Check account selections are appropriate
-   - Confirm dimensions (project, fund, department) are assigned
-   - Review memo descriptions for clarity
+    - Verify debits equal credits
+    - Check account selections are appropriate
+    - Confirm dimensions (project, fund, department) are assigned
+    - Review memo descriptions for clarity
 5. **Approve and Post** the journal entry
 6. Verify the journal status changes from DRAFT to POSTED
 7. Check that the Trial Balance now shows the posted amounts
 
 **Questions**:
 
-- What is the difference between DRAFT and POSTED status?
-- Why is separation of duties important in journal approval?
-- What happens to the General Ledger when you post a journal?
-- How can you verify the journal was posted correctly?
+-   What is the difference between DRAFT and POSTED status?
+-   Why is separation of duties important in journal approval?
+-   What happens to the General Ledger when you post a journal?
+-   How can you verify the journal was posted correctly?
 
 ### Scenario 3: Monthly Depreciation Run
 
@@ -405,10 +445,10 @@ The system provides comprehensive reporting capabilities for financial analysis,
 
 **Questions**:
 
-- What happens to asset book values after depreciation?
-- Why is depreciation important for financial reporting?
-- What accounts are affected by depreciation entries?
-- Why must depreciation journals be posted by an Approver?
+-   What happens to asset book values after depreciation?
+-   Why is depreciation important for financial reporting?
+-   What accounts are affected by depreciation entries?
+-   Why must depreciation journals be posted by an Approver?
 
 ### Scenario 4: Customer Payment Processing
 
@@ -427,10 +467,10 @@ The system provides comprehensive reporting capabilities for financial analysis,
 
 **Questions**:
 
-- How do you handle partial payments?
-- What happens to the remaining Rp 500,000 balance?
-- Why is it important to allocate payments to specific invoices?
-- Why can't you post the receipt yourself?
+-   How do you handle partial payments?
+-   What happens to the remaining Rp 500,000 balance?
+-   Why is it important to allocate payments to specific invoices?
+-   Why can't you post the receipt yourself?
 
 ### Scenario 5: Asset Disposal
 
@@ -448,10 +488,10 @@ The system provides comprehensive reporting capabilities for financial analysis,
 
 **Questions**:
 
-- What type of gain/loss is this transaction?
-- Which accounts are affected by the disposal?
-- Why is it important to track asset disposals?
-- Why must disposal journals be posted by an Approver?
+-   What type of gain/loss is this transaction?
+-   Which accounts are affected by the disposal?
+-   Why is it important to track asset disposals?
+-   Why must disposal journals be posted by an Approver?
 
 ### Scenario 6: Vendor Invoice Processing
 
@@ -470,10 +510,10 @@ The system provides comprehensive reporting capabilities for financial analysis,
 
 **Questions**:
 
-- What is PPN and why is it important for Indonesian businesses?
-- How does the system handle tax calculations according to Indonesian tax law?
-- What happens when an Approver posts this invoice?
-- What are the Indonesian tax reporting requirements for PPN?
+-   What is PPN and why is it important for Indonesian businesses?
+-   How does the system handle tax calculations according to Indonesian tax law?
+-   What happens when an Approver posts this invoice?
+-   What are the Indonesian tax reporting requirements for PPN?
 
 ### Scenario 7: Financial Reporting
 
@@ -491,10 +531,10 @@ The system provides comprehensive reporting capabilities for financial analysis,
 
 **Questions**:
 
-- What does a Trial Balance tell you?
-- Why must debits equal credits?
-- How can you verify the report accuracy?
-- Why don't DRAFT transactions appear in reports?
+-   What does a Trial Balance tell you?
+-   Why must debits equal credits?
+-   How can you verify the report accuracy?
+-   Why don't DRAFT transactions appear in reports?
 
 ### Scenario 8: Multi-dimensional Tracking
 
@@ -513,10 +553,10 @@ The system provides comprehensive reporting capabilities for financial analysis,
 
 **Questions**:
 
-- Why is multi-dimensional tracking important?
-- How can you use this data for project analysis?
-- What reports can you generate with this information?
-- Why can't you post multi-dimensional journals yourself?
+-   Why is multi-dimensional tracking important?
+-   How can you use this data for project analysis?
+-   What reports can you generate with this information?
+-   Why can't you post multi-dimensional journals yourself?
 
 ### Scenario 9: Period Close Process
 
@@ -534,10 +574,10 @@ The system provides comprehensive reporting capabilities for financial analysis,
 
 **Questions**:
 
-- Why is period closing important?
-- What happens to transactions after a period is closed?
-- What controls prevent posting to closed periods?
-- Why must all journals be posted before closing a period?
+-   Why is period closing important?
+-   What happens to transactions after a period is closed?
+-   What controls prevent posting to closed periods?
+-   Why must all journals be posted before closing a period?
 
 ### Scenario 10: Complete Journal Creation-to-Posting Workflow
 
@@ -549,10 +589,10 @@ The system provides comprehensive reporting capabilities for financial analysis,
 1. Log in as Accountant (budi@prasasta.com)
 2. Navigate to Journals → Create New Journal
 3. Create a journal entry for office renovation expenses:
-   - Description: "Office renovation project - January 2025"
-   - Line 1: Debit Office Renovation Expense (Rp 15,000,000)
-   - Line 2: Credit Cash (Rp 15,000,000)
-   - Assign to "Administration" department and "General Fund"
+    - Description: "Office renovation project - January 2025"
+    - Line 1: Debit Office Renovation Expense (Rp 15,000,000)
+    - Line 2: Credit Cash (Rp 15,000,000)
+    - Assign to "Administration" department and "General Fund"
 4. Save as DRAFT
 5. **Verify**: Check that "Post Journal" button is disabled
 6. Log out
@@ -563,9 +603,9 @@ The system provides comprehensive reporting capabilities for financial analysis,
 2. Navigate to Journals → Journal List
 3. Find the office renovation journal entry
 4. Review the journal details:
-   - Verify debits equal credits
-   - Check account selections
-   - Confirm dimensions are assigned
+    - Verify debits equal credits
+    - Check account selections
+    - Confirm dimensions are assigned
 5. **Approve and Post** the journal entry
 6. Verify status changes from DRAFT to POSTED
 7. Navigate to Reports → Trial Balance
@@ -575,11 +615,11 @@ The system provides comprehensive reporting capabilities for financial analysis,
 
 **Questions**:
 
-- Why is this two-step process important for internal controls?
-- What happens to the General Ledger when a journal is posted?
-- How can you verify that a journal was posted correctly?
-- What's the difference between DRAFT and POSTED status?
-- Why don't DRAFT transactions appear in financial reports?
+-   Why is this two-step process important for internal controls?
+-   What happens to the General Ledger when a journal is posted?
+-   How can you verify that a journal was posted correctly?
+-   What's the difference between DRAFT and POSTED status?
+-   Why don't DRAFT transactions appear in financial reports?
 
 ---
 
@@ -630,55 +670,55 @@ The system provides comprehensive reporting capabilities for financial analysis,
 **Symptoms**: Cannot access certain pages or functions
 **Solution**:
 
-- Verify you have the correct role assigned
-- Check if your role has the required permissions
-- Contact system administrator if permissions seem incorrect
-- **Note**: Recent system updates have enhanced role permissions - all roles now have appropriate access to their required functionality
+-   Verify you have the correct role assigned
+-   Check if your role has the required permissions
+-   Contact system administrator if permissions seem incorrect
+-   **Note**: Recent system updates have enhanced role permissions - all roles now have appropriate access to their required functionality
 
 #### Issue: "Journal Entry Not Balanced"
 
 **Symptoms**: Error message when trying to save journal entry
 **Solution**:
 
-- Check that total debits equal total credits
-- Verify all amounts are entered correctly
-- Ensure no negative amounts where not allowed
+-   Check that total debits equal total credits
+-   Verify all amounts are entered correctly
+-   Ensure no negative amounts where not allowed
 
 #### Issue: "Cannot Post to Closed Period"
 
 **Symptoms**: Error when trying to post transactions
 **Solution**:
 
-- Check if the period is closed
-- Contact approver to reopen period if needed
-- Use correct transaction date
+-   Check if the period is closed
+-   Contact approver to reopen period if needed
+-   Use correct transaction date
 
 #### Issue: "Asset Depreciation Not Calculating"
 
 **Symptoms**: Depreciation amounts are zero or incorrect
 **Solution**:
 
-- Verify asset is active and not disposed
-- Check asset acquisition date and useful life
-- Ensure depreciation method is set correctly
+-   Verify asset is active and not disposed
+-   Check asset acquisition date and useful life
+-   Ensure depreciation method is set correctly
 
 #### Issue: "Customer/Vendor Not Found"
 
 **Symptoms**: Cannot find customer or vendor in dropdown
 **Solution**:
 
-- Check if customer/vendor is active
-- Verify spelling of name
-- Contact admin to add new customer/vendor
+-   Check if customer/vendor is active
+-   Verify spelling of name
+-   Contact admin to add new customer/vendor
 
 #### Issue: "Report Data Missing"
 
 **Symptoms**: Reports show incomplete or missing data
 **Solution**:
 
-- Check date range selection
-- Verify user has permission to view data
-- Ensure data has been posted to GL
+-   Check date range selection
+-   Verify user has permission to view data
+-   Ensure data has been posted to GL
 
 ### Getting Help
 
@@ -690,16 +730,16 @@ The system provides comprehensive reporting capabilities for financial analysis,
 
 ### Indonesian Accounting Terminology
 
-- **SAK**: Standar Akuntansi Keuangan (Indonesian Accounting Standards)
-- **PPN**: Pajak Pertambahan Nilai (Value Added Tax)
-- **PPh**: Pajak Penghasilan (Income Tax)
-- **CoA**: Chart of Accounts (Daftar Akun)
-- **GL**: General Ledger (Buku Besar)
-- **AR**: Accounts Receivable (Piutang Usaha)
-- **AP**: Accounts Payable (Hutang Usaha)
-- **Yayasan**: Indonesian foundation/non-profit organization
-- **PT**: Perseroan Terbatas (Limited Company)
-- **CV**: Commanditaire Vennootschap (Limited Partnership)
+-   **SAK**: Standar Akuntansi Keuangan (Indonesian Accounting Standards)
+-   **PPN**: Pajak Pertambahan Nilai (Value Added Tax)
+-   **PPh**: Pajak Penghasilan (Income Tax)
+-   **CoA**: Chart of Accounts (Daftar Akun)
+-   **GL**: General Ledger (Buku Besar)
+-   **AR**: Accounts Receivable (Piutang Usaha)
+-   **AP**: Accounts Payable (Hutang Usaha)
+-   **Yayasan**: Indonesian foundation/non-profit organization
+-   **PT**: Perseroan Terbatas (Limited Company)
+-   **CV**: Commanditaire Vennootschap (Limited Partnership)
 
 ---
 
@@ -752,36 +792,36 @@ The system provides comprehensive reporting capabilities for financial analysis,
 
 Create a journal entry for the following transaction:
 
-- Purchased office equipment for Rp 5,000,000
-- Paid Rp 2,000,000 cash and financed Rp 3,000,000
-- Equipment assigned to "Administration" department
+-   Purchased office equipment for Rp 5,000,000
+-   Paid Rp 2,000,000 cash and financed Rp 3,000,000
+-   Equipment assigned to "Administration" department
 
 #### Exercise 2: Invoice Processing
 
 Process a customer invoice for:
 
-- Consulting services: Rp 2,000,000
-- PPN Output: 11%
-- Customer: PT Maju Jaya
-- Due in 30 days
+-   Consulting services: Rp 2,000,000
+-   PPN Output: 11%
+-   Customer: PT Maju Jaya
+-   Due in 30 days
 
 #### Exercise 3: Asset Management
 
 Register a new asset:
 
-- Laptop computer
-- Cost: Rp 1,500,000
-- Useful life: 3 years
-- Straight-line depreciation
-- Assigned to "IT Department"
+-   Laptop computer
+-   Cost: Rp 1,500,000
+-   Useful life: 3 years
+-   Straight-line depreciation
+-   Assigned to "IT Department"
 
 #### Exercise 4: Payment Allocation
 
 Allocate a customer payment of Rp 1,500,000 to:
 
-- Invoice #INV-001: Rp 800,000
-- Invoice #INV-002: Rp 700,000
-- Record any remaining balance
+-   Invoice #INV-001: Rp 800,000
+-   Invoice #INV-002: Rp 700,000
+-   Record any remaining balance
 
 #### Exercise 5: Journal Approval Workflow
 
@@ -815,12 +855,12 @@ This comprehensive training guide provides the foundation for effective use of t
 
 Remember:
 
-- **Accuracy**: Always verify data before posting
-- **Security**: Follow security protocols and use appropriate permissions
-- **Separation of Duties**: Respect the creation vs. approval workflow
-- **Posting Workflow**: Understand the difference between DRAFT and POSTED status
-- **Communication**: Work with your team and seek help when needed
-- **Continuous Learning**: Stay updated with system enhancements and new features
+-   **Accuracy**: Always verify data before posting
+-   **Security**: Follow security protocols and use appropriate permissions
+-   **Separation of Duties**: Respect the creation vs. approval workflow
+-   **Posting Workflow**: Understand the difference between DRAFT and POSTED status
+-   **Communication**: Work with your team and seek help when needed
+-   **Continuous Learning**: Stay updated with system enhancements and new features
 
 For additional support, refer to the system help documentation or contact your system administrator.
 
@@ -830,18 +870,18 @@ For additional support, refer to the system help documentation or contact your s
 
 Upon completion of this training program, participants should be able to:
 
-- Navigate the ERP system confidently
-- Perform their role-specific functions accurately
-- Follow proper workflows and approval processes
-- Understand the posting workflow (DRAFT → POSTED)
-- Demonstrate separation of duties between creation and approval
-- Generate and interpret reports
-- Troubleshoot common issues
-- Apply best practices for data entry and security
+-   Navigate the ERP system confidently
+-   Perform their role-specific functions accurately
+-   Follow proper workflows and approval processes
+-   Understand the posting workflow (DRAFT → POSTED)
+-   Demonstrate separation of duties between creation and approval
+-   Generate and interpret reports
+-   Troubleshoot common issues
+-   Apply best practices for data entry and security
 
 **Next Steps**:
 
-- Practice with the interactive scenarios
-- Complete the assessment questions
-- Schedule follow-up training sessions as needed
-- Join the user community for ongoing support and tips
+-   Practice with the interactive scenarios
+-   Complete the assessment questions
+-   Schedule follow-up training sessions as needed
+-   Join the user community for ongoing support and tips

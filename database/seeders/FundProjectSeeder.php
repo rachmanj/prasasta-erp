@@ -34,14 +34,14 @@ class FundProjectSeeder extends Seeder
             ]
         );
 
-        Project::updateOrCreate(
-            ['code' => 'PRJ-GURU-2025'],
-            [
-                'name' => 'Pelatihan Guru 2025',
-                'fund_id' => $restricted->id,
-                'budget_total' => 200000000,
-                'status' => 'active',
-            ]
-        );
+        // Project::updateOrCreate(
+        //     ['code' => 'PRJ-GURU-2025'],
+        //     [
+        //         'name' => 'Pelatihan Guru 2025',
+        //         'fund_id' => $restricted->id,
+        //         'budget_total' => 200000000,
+        //         'status' => 'active',
+        //     ]
+        // );
     }
 }

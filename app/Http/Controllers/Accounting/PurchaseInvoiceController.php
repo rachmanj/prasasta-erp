@@ -48,7 +48,8 @@ class PurchaseInvoiceController extends Controller
             'description' => ['nullable', 'string', 'max:255'],
             'lines' => ['required', 'array', 'min:1'],
             'lines.*.line_type' => ['required', 'in:item,service'],
-            'lines.*.item_account_id' => ['required', 'integer'],
+            'lines.*.item_id' => ['nullable', 'integer'],
+            'lines.*.account_id' => ['nullable', 'integer'],
             'lines.*.description' => ['nullable', 'string', 'max:255'],
             'lines.*.qty' => ['required', 'numeric', 'min:0.01'],
             'lines.*.unit_price' => ['required', 'numeric', 'min:0'],
@@ -61,6 +62,20 @@ class PurchaseInvoiceController extends Controller
             'lines.*.fund_id' => ['nullable', 'integer'],
             'lines.*.dept_id' => ['nullable', 'integer'],
         ]);
+
+        // Additional validation to ensure at least one item_id or account_id is provided per line
+        foreach ($data['lines'] as $index => $line) {
+            if ($line['line_type'] === 'item' && empty($line['item_id'])) {
+                throw new \Illuminate\Validation\ValidationException(
+                    validator($request->all(), [])->errors()->add("lines.{$index}.item_id", "Item is required for item lines.")
+                );
+            }
+            if ($line['line_type'] === 'service' && empty($line['account_id'])) {
+                throw new \Illuminate\Validation\ValidationException(
+                    validator($request->all(), [])->errors()->add("lines.{$index}.account_id", "Account is required for service lines.")
+                );
+            }
+        }
 
         return DB::transaction(function () use ($data, $request) {
             $invoice = PurchaseInvoice::create([
@@ -81,17 +96,26 @@ class PurchaseInvoiceController extends Controller
             $total = 0;
             foreach ($data['lines'] as $l) {
                 $lineType = $l['line_type'];
-                $itemAccountId = $l['item_account_id'];
-                $itemId = null;
-                $accountId = null;
+                $itemId = $l['item_id'] ?? null;
+                $accountId = $l['account_id'] ?? null;
 
-                // Determine if it's an item or account based on line type
-                if ($lineType === 'item') {
-                    $itemId = $itemAccountId;
-                    // For items, we need to get the default inventory account
-                    $accountId = DB::table('items')->where('id', $itemId)->value('inventory_account_id') ?? 1; // Default to first account
-                } else {
-                    $accountId = $itemAccountId;
+                // Ensure we have both item_id and account_id properly set
+                if ($lineType === 'item' && !$itemId) {
+                    // For item lines, require item_id
+                    continue; // Skip this line or handle error
+                }
+                if ($lineType === 'service' && !$accountId) {
+                    // For service lines, require account_id  
+                    continue; // Skip this line or handle error
+                }
+
+                // For items, get the inventory account if not provided
+                if ($lineType === 'item' && $itemId && !$accountId) {
+                    $accountId = DB::table('items')->where('id', $itemId)->value('inventory_account_id');
+                    // If no inventory account is set, get the first expense account
+                    if (!$accountId) {
+                        $accountId = DB::table('accounts')->where('is_postable', 1)->where('type', 'LIKE', '%expense%')->value('id') ?? 1;
+                    }
                 }
 
                 $amount = (float)$l['amount'];

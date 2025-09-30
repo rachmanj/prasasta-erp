@@ -282,16 +282,29 @@
                 if (lineType === 'item') {
                     window.itemSelector.open(function(item) {
                         row.find('.item-account-id').val(item.id);
-                        row.find('.item-display').val(`${item.code} - ${item.name}`);
+                        row.find('.item-display').val(item.name);
+                        row.find('.item-code-name-display').text(`${item.code} - ${item.name}`);
+                        row.find('.item-id-input').val(item.id);
+                        row.find('.account-id-input').val(''); // Clear account if switching to item
                         row.find('.description-input').val(item.description || item.name);
                         row.find('.price-input').val(item.last_cost_price || 0);
                         updateLineAmount(row);
                         updateTotals();
                     });
                 } else {
-                    // Handle account selection for services - could be enhanced with account modal
-                    // For now, keep the existing logic or implement account selection modal
-                    console.log('Account selection for services - to be implemented');
+                    // Handle account selection for services
+                    showAccountSelector(function(account) {
+                        row.find('.item-account-id').val(account.id);
+                        row.find('.item-display').val(account.name);
+                        row.find('.item-code-name-display').text(
+                            `${account.code} - ${account.name}`);
+                        row.find('.account-id-input').val(account.id);
+                        row.find('.item-id-input').val(''); // Clear item if switching to service
+                        row.find('.description-input').val(account.name);
+                        row.find('.price-input').val(0);
+                        updateLineAmount(row);
+                        updateTotals();
+                    });
                 }
             });
 
@@ -347,12 +360,13 @@
             <td>
                 <div class="input-group input-group-sm">
                     <input type="hidden" name="lines[${lineIdx}][item_account_id]" class="item-account-id" value="${data?.item_account_id || ''}">
-                    <input type="text" class="form-control item-display" placeholder="Click to select item" readonly>
-                    <div class="input-group-append">
-                        <button type="button" class="btn btn-outline-primary btn-sm select-item-btn" title="Select Item">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
+                        <input type="text" class="form-control item-display text-small" placeholder="Click to select item" readonly>
+                        <small class="text-muted item-code-name-display"></small>
+                        <div class="input-group-append">
+                            <button type="button" class="btn btn-outline-primary btn-sm select-item-btn" title="Select Item">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
                 </div>
                 <input type="hidden" name="lines[${lineIdx}][item_id]" class="item-id-input" value="${data.item_id || ''}">
                 <input type="hidden" name="lines[${lineIdx}][account_id]" class="account-id-input" value="${data.account_id || ''}">
@@ -384,8 +398,8 @@
                 <input type="hidden" name="lines[${lineIdx}][wtax_amount]" class="wtax-amount-input" value="${data.wtax_amount || 0}">
             </td>
             <td>
-                <input type="number" step="0.01" min="0" name="lines[${lineIdx}][amount]"
-                    class="form-control form-control-sm text-right amount-input" value="${data.amount || 0}" readonly>
+                <div class="amount-display text-right font-weight-bold">Rp 0,00</div>
+                <input type="hidden" name="lines[${lineIdx}][amount]" class="amount-input" value="${data.amount || 0}">
             </td>
             <td class="text-center">
                 <button type="button" class="btn btn-xs btn-danger rm">
@@ -474,6 +488,12 @@
                 $row.find('.vat-amount-input').val(vatAmount.toFixed(2));
                 $row.find('.wtax-amount-input').val(wtaxAmount.toFixed(2));
                 $row.find('.amount-input').val(amount.toFixed(2));
+
+                // Update display with Indonesia currency formatting
+                $row.find('.amount-display').text(`Rp ${amount.toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                })}`);
             }
 
             function updateTotals() {
@@ -497,25 +517,88 @@
                 amountDue = originalAmount + totalVat - totalWtax;
 
                 // Update display with Indonesian number formatting
-                $('#original-amount').text(originalAmount.toLocaleString('id-ID', {
+                $('#original-amount').text(`Rp ${originalAmount.toLocaleString('id-ID', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
-                }));
+                })}`);
 
-                $('#total-vat').text(totalVat.toLocaleString('id-ID', {
+                $('#total-vat').text(`Rp ${totalVat.toLocaleString('id-ID', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
-                }));
+                })}`);
 
-                $('#total-wtax').text(totalWtax.toLocaleString('id-ID', {
+                $('#total-wtax').text(`Rp ${totalWtax.toLocaleString('id-ID', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
-                }));
+                })}`);
 
-                $('#amount-due').text(amountDue.toLocaleString('id-ID', {
+                $('#amount-due').text(`Rp ${amountDue.toLocaleString('id-ID', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
-                }));
+                })}`);
+            }
+
+            // Account selector for services
+            function showAccountSelector(callback) {
+                const modal = `
+                    <div class="modal fade" id="accountModal" tabindex="-1" role="dialog">
+                        <div class="modal-dialog modal-lg" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Select Expense Account</h5>
+                                    <button type="button" class="close" data-dismiss="modal">
+                                        <span>&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-striped" id="accountsTable">
+                                            <thead>
+                                                <tr>
+                                                    <th>Code</th>
+                                                    <th>Account Name</th>
+                                                    <th>Type</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                ${window.accounts.map(account => `
+                                                        <tr>
+                                                            <td>${account.code}</td>
+                                                            <td>${account.name}</td>
+                                                            <td><span class="badge badge-info">${account.type}</span></td>
+                                                            <td>
+                                                                <button type="button" class="btn btn-sm btn-primary select-account-btn" 
+                                                                    data-code="${account.code}" data-name="${account.name}" data-id="${account.id}">
+                                                                    Select
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    `).join('')}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                if ($('#accountModal').length === 0) {
+                    $('body').append(modal);
+                }
+
+                $('#accountModal').modal('show');
+
+                $('#accountModal').on('click', '.select-account-btn', function() {
+                    const account = {
+                        id: $(this).data('id'),
+                        code: $(this).data('code'),
+                        name: $(this).data('name')
+                    };
+                    $('#accountModal').modal('hide');
+                    callback(account);
+                });
             }
         });
     </script>
