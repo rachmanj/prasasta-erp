@@ -11,11 +11,16 @@ class PurchaseInvoice extends Model
 
     protected $fillable = [
         'invoice_no',
+        'reference_number',
         'date',
+        'due_date',
+        'terms_days',
         'vendor_id',
         'purchase_order_id',
         'goods_receipt_id',
         'description',
+        'notes',
+        'terms',
         'total_amount',
         'status',
         'posted_at',

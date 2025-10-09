@@ -37,7 +37,10 @@ class PurchaseInvoiceController extends Controller
         $projects = DB::table('projects')->orderBy('code')->get(['id', 'code', 'name']);
         $funds = DB::table('funds')->orderBy('code')->get(['id', 'code', 'name']);
         $departments = DB::table('departments')->orderBy('code')->get(['id', 'code', 'name']);
-        return view('purchase_invoices.create', compact('accounts', 'vendors', 'items', 'taxCodes', 'projects', 'funds', 'departments'));
+
+        $invoiceNumberPreview = $this->numberingService->generateNumber('purchase_invoices', now()->toDateString());
+
+        return view('purchase_invoices.create', compact('accounts', 'vendors', 'items', 'taxCodes', 'projects', 'funds', 'departments', 'invoiceNumberPreview'));
     }
 
     public function store(Request $request)
@@ -45,7 +48,12 @@ class PurchaseInvoiceController extends Controller
         $data = $request->validate([
             'date' => ['required', 'date'],
             'vendor_id' => ['required', 'integer', 'exists:vendors,id'],
+            'reference_number' => ['nullable', 'string', 'max:255'],
+            'terms_days' => ['nullable', 'integer', 'min:0'],
+            'due_date' => ['nullable', 'date'],
             'description' => ['nullable', 'string', 'max:255'],
+            'notes' => ['nullable', 'string'],
+            'terms' => ['nullable', 'string'],
             'lines' => ['required', 'array', 'min:1'],
             'lines.*.line_type' => ['required', 'in:item,service'],
             'lines.*.item_id' => ['nullable', 'integer'],
@@ -53,6 +61,8 @@ class PurchaseInvoiceController extends Controller
             'lines.*.description' => ['nullable', 'string', 'max:255'],
             'lines.*.qty' => ['required', 'numeric', 'min:0.01'],
             'lines.*.unit_price' => ['required', 'numeric', 'min:0'],
+            'lines.*.discount_percent' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'lines.*.discount_amount' => ['nullable', 'numeric', 'min:0'],
             'lines.*.vat_rate' => ['nullable', 'numeric', 'in:0,11'],
             'lines.*.wtax_rate' => ['nullable', 'numeric', 'in:0,2'],
             'lines.*.vat_amount' => ['required', 'numeric', 'min:0'],
@@ -64,27 +74,31 @@ class PurchaseInvoiceController extends Controller
         ]);
 
         // Additional validation to ensure at least one item_id or account_id is provided per line
+        $validator = validator($request->all(), []);
         foreach ($data['lines'] as $index => $line) {
             if ($line['line_type'] === 'item' && empty($line['item_id'])) {
-                throw new \Illuminate\Validation\ValidationException(
-                    validator($request->all(), [])->errors()->add("lines.{$index}.item_id", "Item is required for item lines.")
-                );
+                $validator->errors()->add("lines.{$index}.item_id", "Item is required for item lines.");
             }
             if ($line['line_type'] === 'service' && empty($line['account_id'])) {
-                throw new \Illuminate\Validation\ValidationException(
-                    validator($request->all(), [])->errors()->add("lines.{$index}.account_id", "Account is required for service lines.")
-                );
+                $validator->errors()->add("lines.{$index}.account_id", "Account is required for service lines.");
             }
+        }
+
+        if ($validator->errors()->any()) {
+            throw new \Illuminate\Validation\ValidationException($validator);
         }
 
         return DB::transaction(function () use ($data, $request) {
             $invoice = PurchaseInvoice::create([
                 'invoice_no' => null,
+                'reference_number' => $data['reference_number'] ?? null,
                 'date' => $data['date'],
                 'vendor_id' => $data['vendor_id'],
                 'purchase_order_id' => $request->input('purchase_order_id'),
                 'goods_receipt_id' => $request->input('goods_receipt_id'),
                 'description' => $data['description'] ?? null,
+                'notes' => $data['notes'] ?? null,
+                'terms' => $data['terms'] ?? null,
                 'status' => 'draft',
                 'total_amount' => 0,
             ]);
@@ -129,6 +143,8 @@ class PurchaseInvoiceController extends Controller
                     'description' => $l['description'] ?? null,
                     'qty' => (float)$l['qty'],
                     'unit_price' => (float)$l['unit_price'],
+                    'discount_percent' => (float)($l['discount_percent'] ?? 0),
+                    'discount_amount' => (float)($l['discount_amount'] ?? 0),
                     'amount' => $amount,
                     'vat_amount' => (float)($l['vat_amount'] ?? 0),
                     'wtax_amount' => (float)($l['wtax_amount'] ?? 0),
@@ -138,8 +154,8 @@ class PurchaseInvoiceController extends Controller
                 ]);
             }
 
-            $termsDays = (int) ($request->input('terms_days') ?? 0);
-            $dueDate = $termsDays > 0 ? date('Y-m-d', strtotime($data['date'] . ' +' . $termsDays . ' days')) : null;
+            $termsDays = (int) ($data['terms_days'] ?? 0);
+            $dueDate = $data['due_date'] ?? ($termsDays > 0 ? date('Y-m-d', strtotime($data['date'] . ' +' . $termsDays . ' days')) : null);
             $invoice->update(['total_amount' => $total, 'terms_days' => $termsDays ?: null, 'due_date' => $dueDate]);
             return redirect()->route('purchase-invoices.show', $invoice->id)->with('success', 'Purchase invoice created');
         });
@@ -264,6 +280,40 @@ class PurchaseInvoiceController extends Controller
         \App\Jobs\GeneratePdfJob::dispatch('purchase_invoices.print', ['invoice' => $invoice], $path);
         $url = \Illuminate\Support\Facades\Storage::url($path);
         return back()->with('success', 'PDF generation started')->with('pdf_url', $url);
+    }
+
+    public function getPurchaseOrders(Request $request)
+    {
+        $vendorId = $request->input('vendor_id');
+
+        if (!$vendorId) {
+            return response()->json(['error' => 'Vendor ID is required'], 400);
+        }
+
+        $pos = DB::table('purchase_orders as po')
+            ->leftJoin('vendors as v', 'v.id', '=', 'po.vendor_id')
+            ->where('po.vendor_id', $vendorId)
+            ->where('po.status', '!=', 'cancelled')
+            ->select('po.id', 'po.order_no', 'po.date', 'po.description', 'po.total_amount', 'v.name as vendor_name')
+            ->orderBy('po.date', 'desc')
+            ->get();
+
+        foreach ($pos as &$po) {
+            $po->lines = DB::table('purchase_order_lines as pol')
+                ->leftJoin('items as i', 'i.id', '=', 'pol.item_id')
+                ->leftJoin('accounts as a', 'a.id', '=', 'pol.account_id')
+                ->where('pol.order_id', $po->id)
+                ->select(
+                    'pol.*',
+                    'i.code as item_code',
+                    'i.name as item_name',
+                    'a.code as account_code',
+                    'a.name as account_name'
+                )
+                ->get();
+        }
+
+        return response()->json($pos);
     }
 
     public function data(Request $request)

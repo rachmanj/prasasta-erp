@@ -339,9 +339,19 @@ Prasasta ERP is a comprehensive enterprise resource planning system built with L
     -   Initialization: Proper timeout handling and memory management for dynamic content
     -   **Invoice Forms**: Enhanced sales and purchase invoice create forms with Select2BS4 for all dropdowns, table-based line items, collapsible dimensions section, and improved visual hierarchy
         -   **Sales Invoice Create Form**: Breadcrumb navigation, two-column layout, input groups with icons, table-based line items
-        -   **Purchase Invoice Create Form**: Matching design with consistent layout patterns, form-control-sm classes, line item deletion
--   **Form Enhancements**: Input groups with icons, responsive layouts, visual feedback indicators
--   **Data Formatting**: Thousand separators for amounts, proper number formatting, real-time validation feedback
+        -   **Purchase Invoice Create Form** (Comprehensive 2025-09-30 Enhancement):
+            -   **Header Section**: 3-column layout with Invoice Number (auto-generated preview), Date, Reference/PO Number
+            -   **Auto-Calculation**: Due date automatically calculated from invoice date + terms days (e.g., 09/30 + 45 = 11/14)
+            -   **Vendor Integration**: Copy from PO button next to vendor dropdown for workflow efficiency
+            -   **Line Items Table**: Enhanced with Disc % column for line-level discount functionality
+            -   **Discount Calculation**: Automatic calculation flow: Subtotal → Discount → Amount after Discount → VAT/WTax → Final Amount
+            -   **Enhanced Totals**: 6-row breakdown (Subtotal, Total Discount, Amount after Discount, VAT, WTax, Amount Due) with color coding
+            -   **Notes & Terms Section**: Collapsible card with Internal Notes (for tracking) and Terms & Conditions (printed on invoice)
+            -   **Visual Separation**: Color-coded cards (card-info-outline for lines, card-warning-outline for notes/terms, card-secondary-outline for dimensions)
+            -   **Copy from PO Feature**: AJAX-powered modal fetches vendor POs, displays in DataTable, prefills form on selection
+            -   **Database Fields**: `reference_number`, `notes`, `terms` in purchase_invoices; `discount_percent`, `discount_amount` in purchase_invoice_lines
+-   **Form Enhancements**: Input groups with icons, responsive layouts, visual feedback indicators, real-time auto-calculation, AJAX integration
+-   **Data Formatting**: Thousand separators for amounts, proper number formatting, real-time validation feedback, Indonesian Rupiah formatting
 
 ### UI Notes
 

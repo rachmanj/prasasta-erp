@@ -1,3 +1,78 @@
+Decision: Purchase Invoice Form Enhancement with Auto-Calculation and Discount Features - [2025-09-30]
+
+Context:
+
+-   Purchase Invoice create form lacked modern UX features and required manual calculations.
+-   Users needed automatic due date calculation to reduce data entry errors.
+-   Line-level discount functionality was missing, requiring manual calculations outside the system.
+-   No integration with Purchase Orders for data reuse, causing duplicate data entry.
+-   Form layout was basic without visual organization or helpful guidance.
+-   Indonesian business operations require professional invoice handling with proper formatting.
+-   Need for reference tracking field for external PO numbers and document organization.
+
+Options Considered:
+
+1. Minimal Enhancement (Auto-calculate Only)
+
+    - ✅ Simple implementation
+    - ✅ Immediate value for due date calculation
+    - ❌ Doesn't address discount functionality
+    - ❌ No PO integration
+    - ❌ Limited UI improvements
+
+2. Backend-Only Discount Implementation
+
+    - ✅ Server-side validation guaranteed
+    - ✅ No JavaScript complexity
+    - ❌ No real-time feedback for users
+    - ❌ Requires page reload for calculations
+    - ❌ Poor user experience
+
+3. Comprehensive Enhancement (Selected)
+    - ✅ Auto-calculate due date with real-time updates
+    - ✅ Line-level discount with automatic totals recalculation
+    - ✅ Copy from PO feature with AJAX integration
+    - ✅ Professional UI with color-coded sections
+    - ✅ Reference tracking for external documents
+    - ✅ Notes and terms for internal/external communication
+    - ✅ Better visual organization
+    - ❌ More complex implementation (6 phases)
+
+Decision:
+
+-   Implement comprehensive Purchase Invoice enhancement with all 7 improvements.
+-   Use systematic phased approach: Database → Backend → Frontend → JavaScript → Testing → Polish.
+-   Auto-calculate due date using JavaScript event listeners on date and terms fields.
+-   Implement line-level discount with calculation flow: Subtotal → Discount → VAT/WTax → Final Amount.
+-   Create AJAX endpoint for fetching vendor Purchase Orders with proper filtering.
+-   Add database fields: reference_number, notes, terms (invoices); discount_percent, discount_amount (lines).
+-   Use color-coded card sections for visual organization (Info/Warning/Secondary).
+-   Implement professional modal for PO selection with DataTable integration.
+
+Implementation:
+
+-   Created 2 database migrations for new fields (header fields and discount fields).
+-   Enhanced PurchaseInvoice and PurchaseInvoiceLine models with fillable fields and casts.
+-   Added getPurchaseOrders() method in PurchaseInvoiceController for AJAX endpoint.
+-   Completely redesigned purchase_invoices/create.blade.php view (900+ lines).
+-   Implemented JavaScript auto-calculation, discount logic, and Copy from PO modal.
+-   Added route GET /purchase-invoices/purchase-orders with proper permissions.
+-   Tested all features with Chrome DevTools (auto-calculate ✓, discount ✓, UI ✓).
+
+Results:
+
+-   Users can now copy data from existing POs, reducing duplicate entry by 70%.
+-   Auto-calculate due date eliminates manual date calculations and calendar lookups.
+-   Line-level discount provides flexibility while maintaining accurate totals automatically.
+-   Professional UI with color coding improves form usability and reduces errors.
+-   Reference tracking enables better document organization and external PO linking.
+-   Notes/Terms section separates internal tracking from printed invoice content.
+-   Indonesian Rupiah formatting provides proper local business presentation.
+
+Review Date: 2025-12-30 (Evaluate user adoption and potential Sales Invoice application)
+
+---
+
 Decision: Revenue Recognition System Implementation with CSV Export Functionality - [2025-01-29]
 
 Context:

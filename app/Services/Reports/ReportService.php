@@ -157,7 +157,7 @@ class ReportService
         $asOfDate = $asOf ?: now()->toDateString();
         $invoices = DB::table('purchase_invoices as pi')
             ->leftJoin('vendors as v', 'v.id', '=', 'pi.vendor_id')
-            ->where('status', 'posted')
+            ->where('pi.status', 'posted')
             ->whereDate(DB::raw('COALESCE(pi.due_date, pi.date)'), '<=', $asOfDate)
             ->leftJoin('purchase_payment_allocations as ppa', 'ppa.invoice_id', '=', 'pi.id')
             ->leftJoin('purchase_payments as pp', function ($join) {

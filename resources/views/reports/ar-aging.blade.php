@@ -1,93 +1,76 @@
 @extends('layouts.main')
 
-@section('title', 'AR Aging')
+@section('title_page')
+    AR Aging
+@endsection
+
+@section('breadcrumb_title')
+    <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+    <li class="breadcrumb-item active">AR Aging</li>
+@endsection
 
 @section('content')
-    <div class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1 class="m-0">AR Aging</h1>
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">AR Aging Report</h4>
+                    <div class="btn-group float-right">
+                        <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-toggle="dropdown">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item" href="#" onclick="exportToCSV()">
+                                <i class="fas fa-file-csv"></i> Export CSV
+                            </a>
+                            <a class="dropdown-item" href="#" onclick="exportToPDF()">
+                                <i class="fas fa-file-pdf"></i> Export PDF
+                            </a>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
-                        <li class="breadcrumb-item active">AR Aging</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <section class="content">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">AR Aging</h3>
-                            <div class="card-tools">
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-success btn-sm dropdown-toggle"
-                                        data-toggle="dropdown">
-                                        <i class="fas fa-download"></i> Export
-                                    </button>
-                                    <div class="dropdown-menu">
-                                        <a class="dropdown-item" href="#" onclick="exportToCSV()">
-                                            <i class="fas fa-file-csv"></i> Export CSV
-                                        </a>
-                                        <a class="dropdown-item" href="#" onclick="exportToPDF()">
-                                            <i class="fas fa-file-pdf"></i> Export PDF
-                                        </a>
-                                    </div>
-                                </div>
+                <div class="card-body">
+                    <form method="get" class="mb-3 form-inline">
+                        <div class="form-group mr-2">
+                            <label class="mr-1">As of:</label>
+                            <input type="date" name="as_of" value="{{ request('as_of', now()->toDateString()) }}"
+                                class="form-control form-control-sm">
+                        </div>
+                        <div class="form-group mr-2">
+                            <div class="form-check">
+                                <input type="checkbox" name="overdue" value="1" class="form-check-input"
+                                    {{ request('overdue') ? 'checked' : '' }} id="overdue">
+                                <label class="form-check-label" for="overdue">
+                                    Overdue only
+                                </label>
                             </div>
                         </div>
-                        <div class="card-body">
-                            <form method="get" class="mb-3 form-inline">
-                                <div class="form-group mr-2">
-                                    <label class="mr-1">As of:</label>
-                                    <input type="date" name="as_of"
-                                        value="{{ request('as_of', now()->toDateString()) }}"
-                                        class="form-control form-control-sm">
-                                </div>
-                                <div class="form-group mr-2">
-                                    <div class="form-check">
-                                        <input type="checkbox" name="overdue" value="1" class="form-check-input"
-                                            {{ request('overdue') ? 'checked' : '' }} id="overdue">
-                                        <label class="form-check-label" for="overdue">
-                                            Overdue only
-                                        </label>
-                                    </div>
-                                </div>
-                                <button class="btn btn-primary btn-sm" type="submit">
-                                    <i class="fas fa-search"></i> Apply
-                                </button>
-                            </form>
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-striped table-sm">
-                                    <thead>
-                                        <tr>
-                                            <th>Customer</th>
-                                            <th class="text-right">Current</th>
-                                            <th class="text-right">31-60</th>
-                                            <th class="text-right">61-90</th>
-                                            <th class="text-right">91+</th>
-                                            <th class="text-right">Total</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="rows"></tbody>
-                                </table>
-                            </div>
-                        </div>
+                        <button class="btn btn-primary btn-sm" type="submit">
+                            <i class="fas fa-search"></i> Apply
+                        </button>
+                    </form>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-sm mb-0" id="ar-aging-table">
+                            <thead>
+                                <tr>
+                                    <th>Customer</th>
+                                    <th class="text-right">Current</th>
+                                    <th class="text-right">31-60</th>
+                                    <th class="text-right">61-90</th>
+                                    <th class="text-right">91+</th>
+                                    <th class="text-right">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rows"></tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
 @endsection
 
-@push('scripts')
+@section('scripts')
     <script>
         $(async function() {
             const params = new URLSearchParams({
@@ -143,4 +126,4 @@
             window.open(`{{ route('reports.ar-aging') }}?${params.toString()}`, '_blank');
         }
     </script>
-@endpush
+@endsection

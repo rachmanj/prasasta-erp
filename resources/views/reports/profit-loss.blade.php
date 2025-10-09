@@ -1,175 +1,161 @@
 @extends('layouts.main')
 
-@section('title', 'Profit & Loss Report')
+@section('title_page')
+    Profit & Loss Report
+@endsection
+
+@section('breadcrumb_title')
+    <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+    <li class="breadcrumb-item active">Profit & Loss Report</li>
+@endsection
 
 @section('content')
-    <div class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1 class="m-0">Profit & Loss Report</h1>
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">
+                        <i class="fas fa-chart-line"></i>
+                        Profit & Loss Statement
+                    </h4>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                    </div>
                 </div>
-                <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('reports.trial-balance') }}">Reports</a></li>
-                        <li class="breadcrumb-item active">Profit & Loss</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-    </div>
+                <div class="card-body">
+                    <form id="form" class="mb-3 form-inline">
+                        <div class="form-group mr-2">
+                            <label class="mr-1">From:</label>
+                            <input type="date" name="from" class="form-control form-control-sm" id="from-date"
+                                value="{{ now()->startOfMonth()->toDateString() }}" />
+                        </div>
+                        <div class="form-group mr-2">
+                            <label class="mr-1">To:</label>
+                            <input type="date" name="to" class="form-control form-control-sm" id="to-date"
+                                value="{{ now()->toDateString() }}" />
+                        </div>
+                        <button class="btn btn-primary btn-sm" type="submit">
+                            <i class="fas fa-search"></i> Generate Report
+                        </button>
+                        <button type="button" class="btn btn-success btn-sm ml-2" onclick="exportToCSV()">
+                            <i class="fas fa-download"></i> Export CSV
+                        </button>
+                    </form>
 
-    <section class="content">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">
-                                <i class="fas fa-chart-line"></i>
-                                Profit & Loss Statement
-                            </h3>
-                            <div class="card-tools">
-                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                    <i class="fas fa-minus"></i>
-                                </button>
+                    <!-- Loading indicator -->
+                    <div id="loading" class="text-center" style="display: none;">
+                        <i class="fas fa-spinner fa-spin fa-2x"></i>
+                        <p>Generating Profit & Loss report...</p>
+                    </div>
+
+                    <!-- Report content -->
+                    <div id="report-content" style="display: none;">
+                        <!-- Report header -->
+                        <div id="report-header" class="mb-4">
+                            <h4 id="report-title">Profit & Loss Statement</h4>
+                            <p id="report-period" class="text-muted"></p>
+                        </div>
+
+                        <!-- Income Section -->
+                        <div class="card mb-3">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-arrow-up"></i> Revenue & Income
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-striped" id="income-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Account Code</th>
+                                                <th>Account Name</th>
+                                                <th class="text-right">Amount (IDR)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                        <tfoot>
+                                            <tr class="font-weight-bold">
+                                                <th colspan="2">Total Revenue & Income</th>
+                                                <th class="text-right text-success" id="total-income">0</th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
                             </div>
                         </div>
-                        <div class="card-body">
-                            <form id="form" class="mb-3 form-inline">
-                                <div class="form-group mr-2">
-                                    <label class="mr-1">From:</label>
-                                    <input type="date" name="from" class="form-control form-control-sm" id="from-date"
-                                        value="{{ now()->startOfMonth()->toDateString() }}" />
-                                </div>
-                                <div class="form-group mr-2">
-                                    <label class="mr-1">To:</label>
-                                    <input type="date" name="to" class="form-control form-control-sm" id="to-date"
-                                        value="{{ now()->toDateString() }}" />
-                                </div>
-                                <button class="btn btn-primary btn-sm" type="submit">
-                                    <i class="fas fa-search"></i> Generate Report
-                                </button>
-                                <button type="button" class="btn btn-success btn-sm ml-2" onclick="exportToCSV()">
-                                    <i class="fas fa-download"></i> Export CSV
-                                </button>
-                            </form>
 
-                            <!-- Loading indicator -->
-                            <div id="loading" class="text-center" style="display: none;">
-                                <i class="fas fa-spinner fa-spin fa-2x"></i>
-                                <p>Generating Profit & Loss report...</p>
+                        <!-- Expenses Section -->
+                        <div class="card mb-3">
+                            <div class="card-header bg-danger text-white">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-arrow-down"></i> Expenses
+                                </h5>
                             </div>
-
-                            <!-- Report content -->
-                            <div id="report-content" style="display: none;">
-                                <!-- Report header -->
-                                <div id="report-header" class="mb-4">
-                                    <h4 id="report-title">Profit & Loss Statement</h4>
-                                    <p id="report-period" class="text-muted"></p>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-striped" id="expense-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Account Code</th>
+                                                <th>Account Name</th>
+                                                <th class="text-right">Amount (IDR)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                        <tfoot>
+                                            <tr class="font-weight-bold">
+                                                <th colspan="2">Total Expenses</th>
+                                                <th class="text-right text-danger" id="total-expense">0</th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
                                 </div>
+                            </div>
+                        </div>
 
-                                <!-- Income Section -->
-                                <div class="card mb-3">
-                                    <div class="card-header bg-success text-white">
-                                        <h5 class="card-title mb-0">
-                                            <i class="fas fa-arrow-up"></i> Revenue & Income
-                                        </h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="table-responsive">
-                                            <table class="table table-sm table-striped" id="income-table">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Account Code</th>
-                                                        <th>Account Name</th>
-                                                        <th class="text-right">Amount (IDR)</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody></tbody>
-                                                <tfoot>
-                                                    <tr class="font-weight-bold">
-                                                        <th colspan="2">Total Revenue & Income</th>
-                                                        <th class="text-right text-success" id="total-income">0</th>
-                                                    </tr>
-                                                </tfoot>
-                                            </table>
+                        <!-- Net Profit/Loss Summary -->
+                        <div class="card">
+                            <div class="card-header" id="summary-header">
+                                <h5 class="card-title mb-0" id="summary-title">
+                                    <i class="fas fa-chart-line"></i> Net Profit/Loss
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="info-box">
+                                            <span class="info-box-icon bg-success">
+                                                <i class="fas fa-arrow-up"></i>
+                                            </span>
+                                            <div class="info-box-content">
+                                                <span class="info-box-text">Total Income</span>
+                                                <span class="info-box-number" id="summary-income">Rp 0</span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-
-                                <!-- Expenses Section -->
-                                <div class="card mb-3">
-                                    <div class="card-header bg-danger text-white">
-                                        <h5 class="card-title mb-0">
-                                            <i class="fas fa-arrow-down"></i> Expenses
-                                        </h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="table-responsive">
-                                            <table class="table table-sm table-striped" id="expense-table">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Account Code</th>
-                                                        <th>Account Name</th>
-                                                        <th class="text-right">Amount (IDR)</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody></tbody>
-                                                <tfoot>
-                                                    <tr class="font-weight-bold">
-                                                        <th colspan="2">Total Expenses</th>
-                                                        <th class="text-right text-danger" id="total-expense">0</th>
-                                                    </tr>
-                                                </tfoot>
-                                            </table>
+                                    <div class="col-md-4">
+                                        <div class="info-box">
+                                            <span class="info-box-icon bg-danger">
+                                                <i class="fas fa-arrow-down"></i>
+                                            </span>
+                                            <div class="info-box-content">
+                                                <span class="info-box-text">Total Expenses</span>
+                                                <span class="info-box-number" id="summary-expense">Rp 0</span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-
-                                <!-- Net Profit/Loss Summary -->
-                                <div class="card">
-                                    <div class="card-header" id="summary-header">
-                                        <h5 class="card-title mb-0" id="summary-title">
-                                            <i class="fas fa-chart-line"></i> Net Profit/Loss
-                                        </h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-md-4">
-                                                <div class="info-box">
-                                                    <span class="info-box-icon bg-success">
-                                                        <i class="fas fa-arrow-up"></i>
-                                                    </span>
-                                                    <div class="info-box-content">
-                                                        <span class="info-box-text">Total Income</span>
-                                                        <span class="info-box-number" id="summary-income">Rp 0</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <div class="info-box">
-                                                    <span class="info-box-icon bg-danger">
-                                                        <i class="fas fa-arrow-down"></i>
-                                                    </span>
-                                                    <div class="info-box-content">
-                                                        <span class="info-box-text">Total Expenses</span>
-                                                        <span class="info-box-number" id="summary-expense">Rp 0</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <div class="info-box" id="profit-box">
-                                                    <span class="info-box-icon bg-success">
-                                                        <i class="fas fa-chart-line"></i>
-                                                    </span>
-                                                    <div class="info-box-content">
-                                                        <span class="info-box-text">Net Profit/Loss</span>
-                                                        <span class="info-box-number" id="summary-profit">Rp 0</span>
-                                                        <span class="info-box-text" id="profit-margin">0% margin</span>
-                                                    </div>
-                                                </div>
+                                    <div class="col-md-4">
+                                        <div class="info-box" id="profit-box">
+                                            <span class="info-box-icon bg-success">
+                                                <i class="fas fa-chart-line"></i>
+                                            </span>
+                                            <div class="info-box-content">
+                                                <span class="info-box-text">Net Profit/Loss</span>
+                                                <span class="info-box-number" id="summary-profit">Rp 0</span>
+                                                <span class="info-box-text" id="profit-margin">0% margin</span>
                                             </div>
                                         </div>
                                     </div>
@@ -180,6 +166,8 @@
                 </div>
             </div>
         </div>
+    </div>
+    </div>
     </section>
 
     <script>

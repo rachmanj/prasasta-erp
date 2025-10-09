@@ -17,6 +17,8 @@ class PurchaseInvoiceLine extends Model
         'description',
         'qty',
         'unit_price',
+        'discount_percent',
+        'discount_amount',
         'amount',
         'vat_amount',
         'wtax_amount',
@@ -29,6 +31,8 @@ class PurchaseInvoiceLine extends Model
     protected $casts = [
         'qty' => 'float',
         'unit_price' => 'float',
+        'discount_percent' => 'float',
+        'discount_amount' => 'float',
         'amount' => 'float',
         'vat_amount' => 'float',
         'wtax_amount' => 'float',

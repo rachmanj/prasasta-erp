@@ -45,6 +45,10 @@ class PurchasePaymentController extends Controller
             'date' => ['required', 'date'],
             'vendor_id' => ['required', 'integer', 'exists:vendors,id'],
             'description' => ['nullable', 'string', 'max:255'],
+            'payment_method' => ['required', 'in:cash,bank_transfer,check,other'],
+            'check_number' => ['nullable', 'string', 'max:50'],
+            'reference_number' => ['nullable', 'string', 'max:100'],
+            'bank_account_id' => ['nullable', 'integer', 'exists:accounts,id'],
             'lines' => ['required', 'array', 'min:1'],
             'lines.*.account_id' => ['required', 'integer', 'exists:accounts,id'],
             'lines.*.description' => ['nullable', 'string', 'max:255'],
@@ -60,6 +64,10 @@ class PurchasePaymentController extends Controller
                 'date' => $data['date'],
                 'vendor_id' => $data['vendor_id'],
                 'description' => $data['description'] ?? null,
+                'payment_method' => $data['payment_method'],
+                'check_number' => $data['check_number'] ?? null,
+                'reference_number' => $data['reference_number'] ?? null,
+                'bank_account_id' => $data['bank_account_id'] ?? null,
                 'status' => 'draft',
                 'total_amount' => 0,
             ]);
@@ -232,6 +240,56 @@ class PurchasePaymentController extends Controller
             })
             ->rawColumns(['actions'])
             ->toJson();
+    }
+
+    public function getOutstandingInvoices(Request $request)
+    {
+        $request->validate([
+            'vendor_id' => ['required', 'integer', 'exists:vendors,id'],
+        ]);
+
+        $vendorId = (int)$request->input('vendor_id');
+
+        $outstandingInvoices = DB::table('purchase_invoices as pi')
+            ->leftJoin('purchase_payment_allocations as ppa', 'ppa.invoice_id', '=', 'pi.id')
+            ->leftJoin('purchase_orders as po', 'po.id', '=', 'pi.purchase_order_id')
+            ->select(
+                'pi.id as invoice_id',
+                'pi.invoice_no',
+                'pi.date as invoice_date',
+                'pi.due_date',
+                'pi.total_amount',
+                'po.order_no',
+                DB::raw('COALESCE(SUM(ppa.amount), 0) as allocated_amount'),
+                DB::raw('pi.total_amount - COALESCE(SUM(ppa.amount), 0) as outstanding_amount'),
+                DB::raw('DATEDIFF(CURDATE(), COALESCE(pi.due_date, pi.date)) as days_past_due')
+            )
+            ->where('pi.vendor_id', $vendorId)
+            ->where('pi.status', 'posted')
+            ->groupBy('pi.id', 'pi.invoice_no', 'pi.date', 'pi.due_date', 'pi.total_amount', 'po.order_no')
+            ->having('outstanding_amount', '>', 0)
+            ->orderBy('pi.due_date', 'asc')
+            ->orderBy('pi.date', 'asc')
+            ->orderBy('pi.id', 'asc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $outstandingInvoices->map(function ($invoice) {
+                return [
+                    'invoice_id' => $invoice->invoice_id,
+                    'invoice_no' => $invoice->invoice_no,
+                    'invoice_date' => $invoice->invoice_date,
+                    'due_date' => $invoice->due_date,
+                    'po_no' => $invoice->order_no,
+                    'total_amount' => (float)$invoice->total_amount,
+                    'allocated_amount' => (float)$invoice->allocated_amount,
+                    'outstanding_amount' => (float)$invoice->outstanding_amount,
+                    'days_past_due' => (int)$invoice->days_past_due,
+                    'is_overdue' => $invoice->days_past_due > 0,
+                ];
+            })
+        ]);
     }
 
     public function previewAllocation(Request $request)

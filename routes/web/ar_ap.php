@@ -26,6 +26,7 @@ Route::prefix('sales-invoices')->group(function () {
 Route::prefix('purchase-invoices')->group(function () {
     Route::get('/', [PurchaseInvoiceController::class, 'index'])->middleware('permission:ap.invoices.view')->name('purchase-invoices.index');
     Route::get('/data', [PurchaseInvoiceController::class, 'data'])->middleware('permission:ap.invoices.view')->name('purchase-invoices.data');
+    Route::get('/purchase-orders', [PurchaseInvoiceController::class, 'getPurchaseOrders'])->middleware('permission:ap.invoices.create')->name('purchase-invoices.getPurchaseOrders');
     Route::get('/create', [PurchaseInvoiceController::class, 'create'])->middleware('permission:ap.invoices.create')->name('purchase-invoices.create');
     Route::post('/', [PurchaseInvoiceController::class, 'store'])->middleware('permission:ap.invoices.create')->name('purchase-invoices.store');
     Route::get('/{id}', [PurchaseInvoiceController::class, 'show'])->middleware('permission:ap.invoices.view')->name('purchase-invoices.show');
@@ -55,6 +56,7 @@ Route::prefix('sales-receipts')->group(function () {
 // AP - Purchase Payments
 Route::prefix('purchase-payments')->group(function () {
     Route::get('/', [PurchasePaymentController::class, 'index'])->middleware('permission:ap.payments.view')->name('purchase-payments.index');
+    Route::get('/outstanding-invoices', [PurchasePaymentController::class, 'getOutstandingInvoices'])->middleware('permission:ap.payments.create')->name('purchase-payments.outstandingInvoices');
     Route::get('/preview-allocation', [PurchasePaymentController::class, 'previewAllocation'])->middleware('permission:ap.payments.create')->name('purchase-payments.previewAllocation');
     Route::get('/data', [PurchasePaymentController::class, 'data'])->middleware('permission:ap.payments.view')->name('purchase-payments.data');
     Route::get('/create', [PurchasePaymentController::class, 'create'])->middleware('permission:ap.payments.create')->name('purchase-payments.create');
