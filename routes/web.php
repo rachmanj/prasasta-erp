@@ -439,8 +439,9 @@ Route::middleware('auth')->group(function () {
         // Roles
         Route::get('/roles', [AdminRoleController::class, 'index'])->name('admin.roles.index');
         Route::get('/roles/create', [AdminRoleController::class, 'create'])->name('admin.roles.create');
-        Route::get('/roles/{role}/edit', [AdminRoleController::class, 'edit'])->name('admin.roles.edit');
         Route::get('/roles/data', [AdminRoleController::class, 'data'])->name('admin.roles.data');
+        Route::get('/roles/{role}', [AdminRoleController::class, 'show'])->name('admin.roles.show');
+        Route::get('/roles/{role}/edit', [AdminRoleController::class, 'edit'])->name('admin.roles.edit');
         Route::post('/roles', [AdminRoleController::class, 'store'])->name('admin.roles.store');
         Route::patch('/roles/{role}', [AdminRoleController::class, 'update'])->name('admin.roles.update');
         Route::delete('/roles/{role}', [AdminRoleController::class, 'destroy'])->name('admin.roles.destroy');

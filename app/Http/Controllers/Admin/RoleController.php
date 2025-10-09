@@ -89,6 +89,13 @@ class RoleController extends Controller
         return redirect()->route('admin.roles.index')->with('success', 'Role created');
     }
 
+    public function show(Role $role)
+    {
+        $this->authorize('roles.view');
+        $permissions = $role->permissions;
+        return view('admin.roles.show', compact('role', 'permissions'));
+    }
+
     public function edit(Role $role)
     {
         $this->authorize('roles.update');

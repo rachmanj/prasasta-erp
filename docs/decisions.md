@@ -1,3 +1,82 @@
+Decision: Admin Roles Management Interface Enhancement with Categorized Permissions - [2025-10-09]
+
+Context:
+
+-   Roles management interface had inconsistent layout compared to Users page standard pattern.
+-   Login page displayed outdated branding "ARKA - DDS" instead of current "Prasasta".
+-   Roles edit page showed flat list of 140+ permissions without organization.
+-   No categorization made finding specific permissions difficult and time-consuming.
+-   Missing roles show page resulted in 405 Method Not Allowed error.
+-   Manual permission selection for large permission sets was tedious without bulk actions.
+-   No category-level selection controls for managing groups of related permissions.
+-   Inconsistent AdminLTE styling and custom code instead of framework standards.
+
+Options Considered:
+
+1. Keep Flat Permission List with Search
+
+    - ✅ Simple implementation
+    - ✅ No structural changes needed
+    - ❌ Still overwhelming with 140+ permissions
+    - ❌ No logical grouping
+    - ❌ Search requires knowing exact permission name
+
+2. Tab-Based Permission Groups
+
+    - ✅ Separates permissions into pages
+    - ✅ Reduces visual clutter
+    - ❌ Requires clicking tabs to see all permissions
+    - ❌ Can't see multiple categories simultaneously
+    - ❌ More complex state management
+
+3. Accordion-Based Categorization (Selected)
+    - ✅ Automatic grouping by permission prefix (accounts._, ap._, ar.\*)
+    - ✅ Collapsible sections save screen space
+    - ✅ All categories visible in single scroll
+    - ✅ Badge counters show permission counts
+    - ✅ Category-specific and global selection controls
+    - ✅ Animated visual feedback with chevron icons
+    - ✅ Matches modern admin panel patterns
+    - ❌ Slightly more complex JavaScript
+
+Decision:
+
+-   Implement accordion-based categorization with automatic grouping by permission prefix.
+-   Use PHP string manipulation to extract category from permission name (first segment before dot).
+-   Standardize all admin pages to follow Users page layout pattern (card-title, card-tools).
+-   Add three levels of selection control: global (all permissions), category (per group), individual.
+-   Create missing show page with read-only accordion display and check mark icons.
+-   Fix branding consistency by updating auth layout title to "Prasasta".
+-   Use AdminLTE's card-based accordion structure with Bootstrap collapse functionality.
+-   Implement JavaScript handlers for selection buttons and accordion animations.
+-   Apply consistent styling across index, edit, and show pages.
+
+Why This Approach:
+
+-   Permission prefix naming (accounts.view, accounts.create) naturally creates logical categories.
+-   Accordion preserves all functionality while dramatically improving usability.
+-   Three-level selection accommodates different workflows: bulk setup, category-specific, fine-tuning.
+-   Read-only show page provides safe way to review roles without accidental changes.
+-   Consistent layout patterns reduce cognitive load and training time.
+-   AdminLTE framework standards ensure professional appearance and maintainability.
+-   Chrome DevTools MCP testing validated complete functionality before production.
+
+Consequences:
+
+-   ✅ Transformed overwhelming 140+ permission flat list into manageable 30+ organized categories.
+-   ✅ Significantly improved role management efficiency with category-based bulk actions.
+-   ✅ Enhanced user experience with professional accordion interface and visual feedback.
+-   ✅ Fixed branding consistency across authentication flow.
+-   ✅ Completed RESTful CRUD operations with proper show page implementation.
+-   ✅ Standardized admin interface matching Users page patterns.
+-   ✅ Improved maintainability with framework-standard code instead of custom styles.
+-   ⚠️ Permission naming convention must maintain prefix consistency for auto-categorization.
+-   ⚠️ Future permissions should follow [category].[action] naming pattern.
+
+Review Date: 2025-11-09 (30 days) - Gather user feedback on categorization and selection controls.
+
+---
+
 Decision: Purchase Invoice Form Enhancement with Auto-Calculation and Discount Features - [2025-09-30]
 
 Context:
